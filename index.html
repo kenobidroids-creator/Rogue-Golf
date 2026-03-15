@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -23,12 +24,12 @@
 /* ── RESET ──────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 body {
-    background: var(--bg);
-    color: #fff;
-    font-family: var(--fb);
-    overflow: hidden;
-    touch-action: none;
-    user-select: none;
+background: var(–bg);
+color: #fff;
+font-family: var(–fb);
+overflow: hidden;
+touch-action: none;
+user-select: none;
 }
 canvas { display: block; cursor: default; }
 canvas.pan-cursor  { cursor: grab; }
@@ -36,164 +37,172 @@ canvas.grab-active { cursor: grabbing; }
 
 /* ── PROGRESS BAR ───────────────────────────────────────────── */
 #progress-bar {
-    position: absolute; top: 0; left: 0; right: 0;
-    height: 3px; background: rgba(255,255,255,0.08); z-index: 20;
+position: absolute; top: 0; left: 0; right: 0;
+height: 3px; background: rgba(255,255,255,0.08); z-index: 20;
 }
 #progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--safe), var(--accent));
-    transition: width 0.5s cubic-bezier(.4,0,.2,1);
+height: 100%;
+background: linear-gradient(90deg, var(–safe), var(–accent));
+transition: width 0.5s cubic-bezier(.4,0,.2,1);
 }
 
 /* ── HUD ────────────────────────────────────────────────────── */
 #hud {
-    position: absolute; top: 0; left: 0; right: 0;
-    padding: 14px 18px;
-    display: flex; justify-content: space-between; align-items: flex-start;
-    pointer-events: none; z-index: 10;
+position: absolute; top: 0; left: 0; right: 0;
+padding: 14px 18px;
+display: flex; justify-content: space-between; align-items: flex-start;
+pointer-events: none; z-index: 10;
 }
 .hud-block {
-    background: rgba(10,15,30,0.85);
-    border: 1px solid var(--border);
-    border-radius: 10px; padding: 8px 14px;
-    backdrop-filter: blur(6px);
+background: rgba(10,15,30,0.85);
+border: 1px solid var(–border);
+border-radius: 10px; padding: 8px 14px;
+backdrop-filter: blur(6px);
 }
 .hud-label {
-    font-size: 9px; font-weight: 700; letter-spacing: 2px;
-    color: rgba(255,255,255,0.4); text-transform: uppercase; margin-bottom: 4px;
+font-size: 9px; font-weight: 700; letter-spacing: 2px;
+color: rgba(255,255,255,0.4); text-transform: uppercase; margin-bottom: 4px;
 }
-.hud-value { font-family: var(--ft); font-size: 20px; line-height: 1; color: var(--accent); }
+.hud-value { font-family: var(–ft); font-size: 20px; line-height: 1; color: var(–accent); }
 
 /* Stamina pips */
 #pips { display: flex; gap: 4px; flex-wrap: wrap; max-width: 180px; }
 .pip {
-    width: 10px; height: 10px; border-radius: 2px;
-    background: var(--accent); border: 1px solid rgba(0,0,0,0.3);
-    transition: background 0.2s, transform 0.15s;
+width: 10px; height: 10px; border-radius: 2px;
+background: var(–accent); border: 1px solid rgba(0,0,0,0.3);
+transition: background 0.2s, transform 0.15s;
 }
 .pip.empty  { background: rgba(255,255,255,0.12); }
-.pip.danger { background: var(--danger); animation: pip-pulse 0.8s ease-in-out infinite alternate; }
+.pip.danger { background: var(–danger); animation: pip-pulse 0.8s ease-in-out infinite alternate; }
 @keyframes pip-pulse { to { transform: scale(1.3); } }
 
 /* ── CARD HAND ──────────────────────────────────────────────── */
 #hand-wrap {
-    position: absolute; bottom: 0; left: 0; right: 0;
-    display: flex; flex-direction: column; align-items: center;
-    padding-bottom: 18px; z-index: 10; pointer-events: none;
+position: absolute; bottom: 0; left: 0; right: 0;
+display: flex; flex-direction: column; align-items: center;
+padding-bottom: 18px; z-index: 10; pointer-events: none;
 }
 #mobile-tip {
-    font-size: 10px; color: rgba(255,255,255,0.45);
-    letter-spacing: 1px; pointer-events: none;
-    transition: opacity 0.4s; margin-bottom: 4px;
+font-size: 10px; color: rgba(255,255,255,0.45);
+letter-spacing: 1px; pointer-events: none;
+transition: opacity 0.4s; margin-bottom: 4px;
 }
 #swing-hint {
-    font-size: 11px; font-weight: 700; letter-spacing: 2px;
-    color: var(--accent); text-transform: uppercase; margin-bottom: 10px;
-    text-shadow: 0 0 12px rgba(251,191,36,0.6);
-    transition: opacity 0.2s, color 0.2s;
+font-size: 11px; font-weight: 700; letter-spacing: 2px;
+color: var(–accent); text-transform: uppercase; margin-bottom: 10px;
+text-shadow: 0 0 12px rgba(251,191,36,0.6);
+transition: opacity 0.2s, color 0.2s;
 }
 #hand { display: flex; gap: 10px; pointer-events: auto; }
 
 /* Cards */
 .card {
-    width: 82px; height: 110px;
-    background: linear-gradient(160deg, #1a2235, #0d1320);
-    border: 1.5px solid rgba(255,255,255,0.12);
-    border-radius: 10px; cursor: pointer;
-    display: flex; flex-direction: column; align-items: center;
-    justify-content: center; text-align: center;
-    padding: 6px 5px; position: relative;
-    transition: transform 0.18s cubic-bezier(.2,.8,.3,1.2),
-                box-shadow 0.15s, border-color 0.15s;
-    animation: card-deal 0.3s ease-out backwards;
-    touch-action: none;
+width: 82px; height: 110px;
+background: linear-gradient(160deg, #1a2235, #0d1320);
+border: 1.5px solid rgba(255,255,255,0.12);
+border-radius: 10px; cursor: pointer;
+display: flex; flex-direction: column; align-items: center;
+justify-content: center; text-align: center;
+padding: 6px 5px; position: relative;
+transition: transform 0.18s cubic-bezier(.2,.8,.3,1.2),
+box-shadow 0.15s, border-color 0.15s;
+animation: card-deal 0.3s ease-out backwards;
+touch-action: none;
 }
 @media (hover: hover) {
-    .card:not(.selected):not(.disabled):hover {
-        transform: translateY(-14px) scale(1.04);
-        border-color: rgba(255,255,255,0.3);
-        box-shadow: 0 10px 28px rgba(0,0,0,0.5);
-    }
+.card:not(.selected):not(.disabled):hover {
+transform: translateY(-14px) scale(1.04);
+border-color: rgba(255,255,255,0.3);
+box-shadow: 0 10px 28px rgba(0,0,0,0.5);
+}
 }
 .card.selected {
-    border-color: var(--accent);
-    background: linear-gradient(160deg, #221a40, #0d1320);
-    transform: translateY(-20px) scale(1.05);
-    box-shadow: 0 0 28px rgba(251,191,36,0.5), 0 10px 30px rgba(0,0,0,0.6);
+border-color: var(–accent);
+background: linear-gradient(160deg, #221a40, #0d1320);
+transform: translateY(-20px) scale(1.05);
+box-shadow: 0 0 28px rgba(251,191,36,0.5), 0 10px 30px rgba(0,0,0,0.6);
+}
+/* On touch devices, selected card lifts higher and grows for easy reading */
+@media (hover: none) {
+.card.selected {
+transform: translateY(-28px) scale(1.18);
+box-shadow: 0 0 32px rgba(251,191,36,0.6), 0 14px 36px rgba(0,0,0,0.7);
+z-index: 20;
+}
 }
 .card.disabled { opacity: 0.32; pointer-events: none; filter: grayscale(0.4); }
 @keyframes card-deal {
-    from { transform: translateY(70px) rotate(4deg); opacity: 0; }
-    to   { transform: translateY(0) rotate(0); opacity: 1; }
+from { transform: translateY(70px) rotate(4deg); opacity: 0; }
+to   { transform: translateY(0) rotate(0); opacity: 1; }
 }
 .card-badge { position: absolute; top: -8px; right: -8px;
-    background: var(--danger); color: #fff; border-radius: 50%;
-    width: 22px; height: 22px; font-size: 11px; font-weight: 700;
-    display: flex; align-items: center; justify-content: center;
-    border: 2px solid #0a0f1e; box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+background: var(–danger); color: #fff; border-radius: 50%;
+width: 22px; height: 22px; font-size: 11px; font-weight: 700;
+display: flex; align-items: center; justify-content: center;
+border: 2px solid #0a0f1e; box-shadow: 0 2px 6px rgba(0,0,0,0.4);
 }
-.card-badge.free { background: var(--safe); font-size: 8px; letter-spacing: 0.3px; }
+.card-badge.free { background: var(–safe); font-size: 8px; letter-spacing: 0.3px; }
 .card-icon  { font-size: 20px; margin-bottom: 3px; line-height: 1; }
-.card-name  { font-family: var(--ft); font-size: 12px; font-weight: 700; line-height: 1.2; margin-bottom: 3px; }
+.card-name  { font-family: var(–ft); font-size: 12px; font-weight: 700; line-height: 1.2; margin-bottom: 3px; }
 .card-stats { font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.80); margin-bottom: 3px; }
 .card-desc  { font-size: 9.5px; color: rgba(255,255,255,0.70); font-style: italic; line-height: 1.3; }
 
 /* Bonus card pick state — clear green glow, no ambiguity */
 .bonus-card.picked {
-    border-color: var(--safe) !important;
-    box-shadow: 0 0 20px rgba(34,197,94,0.5);
-    pointer-events: none;
+border-color: var(–safe) !important;
+box-shadow: 0 0 20px rgba(34,197,94,0.5);
+pointer-events: none;
 }
 .bonus-card.picked::after {
-    content: "✓ ADDED";
-    position: absolute; bottom: 6px; left: 0; right: 0;
-    font-family: var(--ft); font-size: 9px; font-weight: 700;
-    color: var(--safe); letter-spacing: 1px; text-align: center;
+content: “✓ ADDED”;
+position: absolute; bottom: 6px; left: 0; right: 0;
+font-family: var(–ft); font-size: 9px; font-weight: 700;
+color: var(–safe); letter-spacing: 1px; text-align: center;
 }
 
 /* ── DECK VIEWER ─────────────────────────────────────────────── */
 #overlay-deck {
-    position: absolute; inset: 0;
-    background: rgba(2,6,23,0.96); backdrop-filter: blur(10px);
-    display: none; flex-direction: column; align-items: center;
-    z-index: 60; padding: 30px 20px 20px;
-    animation: fade-in 0.2s ease-out;
-    overflow-y: auto;
+position: absolute; inset: 0;
+background: rgba(2,6,23,0.96); backdrop-filter: blur(10px);
+display: none; flex-direction: column; align-items: center;
+z-index: 60; padding: 30px 20px 20px;
+animation: fade-in 0.2s ease-out;
+overflow-y: auto;
 }
 #overlay-deck.show { display: flex; }
 #deck-title {
-    font-family: var(--ft); font-size: 28px; font-weight: 700;
-    color: var(--accent); margin-bottom: 4px; letter-spacing: 2px;
+font-family: var(–ft); font-size: 28px; font-weight: 700;
+color: var(–accent); margin-bottom: 4px; letter-spacing: 2px;
 }
 #deck-subtitle { font-size: 13px; color: rgba(255,255,255,0.45); margin-bottom: 20px; }
 #deck-sections { width: 100%; max-width: 620px; }
 .deck-section-title {
-    font-family: var(--ft); font-size: 11px; font-weight: 700;
-    letter-spacing: 2px; color: rgba(255,255,255,0.35);
-    text-transform: uppercase; margin-bottom: 10px; margin-top: 18px;
+font-family: var(–ft); font-size: 11px; font-weight: 700;
+letter-spacing: 2px; color: rgba(255,255,255,0.35);
+text-transform: uppercase; margin-bottom: 10px; margin-top: 18px;
 }
 #deck-cards { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
 .btn.ghost {
-    background: transparent; border-color: rgba(255,255,255,0.2);
-    color: rgba(255,255,255,0.6); font-size: 12px; padding: 8px 18px;
+background: transparent; border-color: rgba(255,255,255,0.2);
+color: rgba(255,255,255,0.6); font-size: 12px; padding: 8px 18px;
 }
 
 /* ── RELIC CARD ─────────────────────────────────────────────── */
 .relic-card {
-    width: 110px; min-height: 130px;
-    background: linear-gradient(160deg, #1a1040, #0d0d20);
-    border: 1.5px solid rgba(192,132,252,0.25);
-    border-radius: 10px; cursor: pointer; padding: 10px 8px;
-    display: flex; flex-direction: column; align-items: center;
-    text-align: center; position: relative;
-    transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+width: 110px; min-height: 130px;
+background: linear-gradient(160deg, #1a1040, #0d0d20);
+border: 1.5px solid rgba(192,132,252,0.25);
+border-radius: 10px; cursor: pointer; padding: 10px 8px;
+display: flex; flex-direction: column; align-items: center;
+text-align: center; position: relative;
+transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
 }
 .relic-card:hover  { border-color: #c084fc; transform: translateY(-6px); box-shadow: 0 0 18px rgba(192,132,252,0.3); }
-.relic-card.picked { border-color: var(--safe); box-shadow: 0 0 18px rgba(34,197,94,0.4); pointer-events:none; }
-.relic-card.picked::after { content:"✓ TAKEN"; position:absolute;bottom:6px;left:0;right:0;font-family:var(--ft);font-size:9px;font-weight:700;color:var(--safe);letter-spacing:1px; }
+.relic-card.picked { border-color: var(–safe); box-shadow: 0 0 18px rgba(34,197,94,0.4); pointer-events:none; }
+.relic-card.picked::after { content:“✓ TAKEN”; position:absolute;bottom:6px;left:0;right:0;font-family:var(–ft);font-size:9px;font-weight:700;color:var(–safe);letter-spacing:1px; }
 .relic-card.cursed { border-color: rgba(249,115,22,0.4); }
 .relic-icon   { font-size:28px; margin-bottom:6px; }
-.relic-name   { font-family:var(--ft); font-size:11px; font-weight:700; margin-bottom:4px; }
+.relic-name   { font-family:var(–ft); font-size:11px; font-weight:700; margin-bottom:4px; }
 .relic-desc   { font-size:8.5px; color:rgba(255,255,255,0.6); line-height:1.35; }
 .relic-rarity { position:absolute;top:-7px;left:8px; font-size:8px;font-weight:700;letter-spacing:1px;padding:2px 6px;border-radius:6px; }
 .rarity-common   { background:#374151;color:#9ca3af; }
@@ -202,80 +211,81 @@ canvas.grab-active { cursor: grabbing; }
 
 /* HUD relic pip */
 .relic-pip {
-    width:28px;height:28px;border-radius:6px;
-    background:rgba(10,15,30,0.85); border:1px solid rgba(192,132,252,0.3);
-    display:flex;align-items:center;justify-content:center;
-    font-size:15px; cursor:pointer; backdrop-filter:blur(4px);
-    transition:border-color 0.15s;
+width:28px;height:28px;border-radius:6px;
+background:rgba(10,15,30,0.85); border:1px solid rgba(192,132,252,0.3);
+display:flex;align-items:center;justify-content:center;
+font-size:15px; cursor:pointer; backdrop-filter:blur(4px);
+transition:border-color 0.15s;
 }
 .relic-pip:hover { border-color:#c084fc; }
 
 /* Tab button active */
 .btn.tab-active { background: #1a1040; border-color:#c084fc; color:#c084fc; }
 #card-preview {
-    position: absolute; bottom: 160px; left: 50%;
-    transform: translateX(-50%) scale(0.85); transform-origin: bottom center;
-    width: 160px;
-    background: linear-gradient(160deg, #1e2d45, #0d1320);
-    border: 2px solid var(--accent); border-radius: 14px;
-    padding: 16px 14px 14px; text-align: center;
-    pointer-events: none; z-index: 40; opacity: 0;
-    transition: opacity 0.15s, transform 0.18s cubic-bezier(.2,.8,.3,1.2);
-    box-shadow: 0 0 30px rgba(251,191,36,0.25), 0 12px 40px rgba(0,0,0,0.7);
+position: absolute; bottom: 160px; left: 50%;
+transform: translateX(-50%) scale(0.85); transform-origin: bottom center;
+width: 160px;
+background: linear-gradient(160deg, #1e2d45, #0d1320);
+border: 2px solid var(–accent); border-radius: 14px;
+padding: 16px 14px 14px; text-align: center;
+pointer-events: none; z-index: 40; opacity: 0;
+transition: opacity 0.15s, transform 0.18s cubic-bezier(.2,.8,.3,1.2);
+box-shadow: 0 0 30px rgba(251,191,36,0.25), 0 12px 40px rgba(0,0,0,0.7);
 }
 #card-preview.visible { opacity: 1; transform: translateX(-50%) scale(1); }
 .pv-icon  { font-size: 40px; margin-bottom: 8px; }
-.pv-name  { font-family: var(--ft); font-size: 14px; margin-bottom: 6px; }
+.pv-name  { font-family: var(–ft); font-size: 14px; margin-bottom: 6px; }
 .pv-stats { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.8); margin-bottom: 8px; }
 .pv-desc  { font-size: 11px; color: rgba(255,255,255,0.7); line-height: 1.4; margin-bottom: 10px; }
 .pv-cost  {
-    display: inline-block; background: var(--danger); color: #fff;
-    font-weight: 700; font-size: 11px; padding: 3px 10px; border-radius: 20px;
+display: inline-block; background: var(–danger); color: #fff;
+font-weight: 700; font-size: 11px; padding: 3px 10px; border-radius: 20px;
 }
-.pv-cost.free { background: var(--safe); }
+.pv-cost.free { background: var(–safe); }
 
 /* ── OVERLAYS ───────────────────────────────────────────────── */
 .overlay {
-    position: absolute; inset: 0;
-    background: rgba(2,6,23,0.92); backdrop-filter: blur(8px);
-    display: none; flex-direction: column; align-items: center; justify-content: center;
-    z-index: 50; animation: fade-in 0.3s ease-out;
+position: absolute; inset: 0;
+background: rgba(2,6,23,0.92); backdrop-filter: blur(8px);
+display: none; flex-direction: column; align-items: center; justify-content: center;
+z-index: 50; animation: fade-in 0.3s ease-out;
 }
 .overlay.show { display: flex; }
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
 
 .ov-title {
-    font-family: var(--ft); font-size: 52px; font-weight: 700;
-    letter-spacing: 2px; margin-bottom: 6px; line-height: 1;
+font-family: var(–ft); font-size: 52px; font-weight: 700;
+letter-spacing: 2px; margin-bottom: 6px; line-height: 1;
 }
 .ov-sub { font-size: 15px; color: rgba(255,255,255,0.55); margin-bottom: 28px; letter-spacing: 1px; }
 #stars-row  { font-size: 28px; margin-bottom: 14px; letter-spacing: 4px; }
 #bonus-cards { display: flex; gap: 14px; margin-bottom: 24px; }
 .bonus-card { cursor: pointer; border: 2px solid rgba(255,255,255,0.15); transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s; }
-.bonus-card:hover { border-color: var(--accent); transform: translateY(-6px); }
+.bonus-card:hover { border-color: var(–accent); transform: translateY(-6px); }
 
 .btn {
-    font-family: var(--ft); font-size: 15px; font-weight: 700; letter-spacing: 2px;
-    background: var(--safe); border: 2px solid rgba(255,255,255,0.15);
-    padding: 13px 32px; color: #fff; border-radius: 8px; cursor: pointer;
-    transition: background 0.15s, transform 0.1s;
+font-family: var(–ft); font-size: 15px; font-weight: 700; letter-spacing: 2px;
+background: var(–safe); border: 2px solid rgba(255,255,255,0.15);
+padding: 13px 32px; color: #fff; border-radius: 8px; cursor: pointer;
+transition: background 0.15s, transform 0.1s;
 }
 .btn:hover        { background: #16a34a; transform: scale(1.03); }
-.btn.danger       { background: var(--danger); }
+.btn.danger       { background: var(–danger); }
 .btn.danger:hover { background: #dc2626; }
-.btn.small        { font-size: 12px; padding: 9px 20px; background: var(--ui2); margin-top: 10px; }
+.btn.small        { font-size: 12px; padding: 9px 20px; background: var(–ui2); margin-top: 10px; }
 
 /* Floating text */
 .float-text {
-    position: absolute; font-family: var(--ft); font-size: 20px;
-    pointer-events: none; z-index: 30;
-    animation: float-up 1.2s ease-out forwards;
+position: absolute; font-family: var(–ft); font-size: 20px;
+pointer-events: none; z-index: 30;
+animation: float-up 1.2s ease-out forwards;
 }
 @keyframes float-up {
-    from { transform: translateY(0);    opacity: 1; }
-    to   { transform: translateY(-60px); opacity: 0; }
+from { transform: translateY(0);    opacity: 1; }
+to   { transform: translateY(-60px); opacity: 0; }
 }
 </style>
+
 </head>
 <body>
 
@@ -345,6 +355,7 @@ canvas.grab-active { cursor: grabbing; }
 </div>
 
 <!-- Relic detail overlay -->
+
 <div class="overlay" id="overlay-relics">
     <div class="ov-title" style="color:#c084fc;font-size:32px">RELICS</div>
     <div id="relic-list" style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;max-width:600px;margin:16px 0"></div>
@@ -352,6 +363,7 @@ canvas.grab-active { cursor: grabbing; }
 </div>
 
 <!-- Deck viewer — slides over hole complete -->
+
 <div id="overlay-deck">
     <div id="deck-title">YOUR DECK</div>
     <div id="deck-subtitle"></div>
@@ -578,6 +590,7 @@ const state = {
 
 let hand = [], bonusHand = [], selectedIdx = -1;
 let startingHand = []; // snapshot of full hand at hole start, for deck viewer
+let windFrames = 0;    // counts down after each shot — wind only applies early in flight
 
 // Drag — shot aiming (card selected) OR free-cam pan (no card selected)
 const drag = {
@@ -746,6 +759,7 @@ function onPointerUp(sx, sy) {
 
     state.stamina -= actualCost;
     state.swingsThisHole++; state.totalSwings++;
+    windFrames = 90; // wind active for ~1.5s after each shot
     hand.splice(selectedIdx, 1);
     selectedIdx = -1;
     cam.panning = false;
@@ -808,7 +822,7 @@ function generateHole() {
     ball.x = 120; ball.y = WORLD_H / 2;
     ball.vx = 0; ball.vy = 0; ball.friction = 0.98;
     state.activeEffect = null; state.swingsThisHole = 0;
-    holeSunk = false;
+    holeSunk = false; windFrames = 0;
     walls = []; sandHazards = []; waterHazards = [];
 
     const complexity = Math.min(state.holeNum, 10);
@@ -869,14 +883,14 @@ function generateHole() {
     window._bottomEdge = bottomEdge;
 
     // ── Physics: sample collision points along both edges ─────────
-    // Use the offset polyline points directly — no more tiny squares.
-    // We densify each edge by interpolating between waypoints.
-    const PLANK = 16; // collision box half-size
+    // Small boxes (8×8) so narrow gaps between obstacles stay open.
+    // Sampled every 14px so coverage is solid but not overlapping.
+    const PLANK = 4; // half-size → 8×8 box
     [topEdge, bottomEdge].forEach(edge => {
         for (let i = 0; i < edge.length - 1; i++) {
             const a = edge[i], b = edge[i+1];
             const segLen2 = Math.hypot(b.x-a.x, b.y-a.y);
-            const steps2  = Math.max(2, Math.ceil(segLen2 / 28));
+            const steps2  = Math.max(2, Math.ceil(segLen2 / 14));
             for (let s = 0; s <= steps2; s++) {
                 const t2 = s / steps2;
                 const mx = a.x + (b.x-a.x)*t2;
@@ -992,19 +1006,50 @@ function renderHand() {
             + (state.stamina < card.cost ? " disabled" : "");
         el.style.animationDelay = `${i*0.06}s`;
         el.innerHTML = cardHTML(card);
+
+        // ── Desktop: hover preview, click to select/deselect ──────
         el.addEventListener("mouseenter", () => { if (!el.classList.contains("disabled")) showPreview(card, el); });
         el.addEventListener("mouseleave", hidePreview);
         el.addEventListener("click", () => { hidePreview(); selectCard(i); });
-        let touchY0=0, holdTimer=null, previewShown=false;
+
+        // ── Mobile touch UX ───────────────────────────────────────
+        // • Tap       → select card (raises it) or deselect if already selected
+        // • Swipe UP  → play the card (locks in, fires when player drags on canvas)
+        //   (swipe up only works if this card is already selected)
+        // No hold-to-preview on mobile anymore — the raised selected state IS the preview
+        let touchStartY = 0;
+        let touchMoved  = false;
+
         el.addEventListener("touchstart", e => {
-            touchY0=e.touches[0].clientY; previewShown=false;
-            holdTimer=setTimeout(()=>{ previewShown=true; showPreview(card,el);
-                if(!mobileTipShown){mobileTipShown=true;mobileTipEl.style.opacity="0";}},320);
-        },{passive:true});
+            touchStartY = e.touches[0].clientY;
+            touchMoved  = false;
+        }, { passive: true });
+
         el.addEventListener("touchmove", e => {
-            if(!previewShown && touchY0-e.touches[0].clientY>28){previewShown=true;clearTimeout(holdTimer);showPreview(card,el);}
-        },{passive:true});
-        el.addEventListener("touchend", ()=>{ clearTimeout(holdTimer); hidePreview(); if(!previewShown) selectCard(i); });
+            if (Math.abs(e.touches[0].clientY - touchStartY) > 8) touchMoved = true;
+        }, { passive: true });
+
+        el.addEventListener("touchend", e => {
+            const dy = touchStartY - e.changedTouches[0].clientY; // positive = swipe up
+
+            if (dy > 40 && i === selectedIdx) {
+                // Swipe up on selected card = commit to play
+                // Card is now "armed" — next canvas drag fires the shot
+                // Visual: pulse the hint
+                const hint = document.getElementById("swing-hint");
+                hint.style.color = "var(--safe)";
+                hint.textContent = "✓ CARD ARMED · TAP CANVAS TO AIM";
+                hint.style.opacity = "1";
+                // Brief flash on card
+                el.style.boxShadow = "0 0 30px rgba(34,197,94,0.7)";
+                setTimeout(() => el.style.boxShadow = "", 400);
+            } else if (!touchMoved) {
+                // Tap = select toggle (shows card raised for easy reading)
+                hidePreview();
+                selectCard(i);
+            }
+        });
+
         handEl.appendChild(el);
     });
 }
@@ -1115,7 +1160,11 @@ function updateHint() {
         hint.style.opacity="1"; hint.style.color="var(--accent)";
     } else if (selectedIdx !== -1) {
         const cost = getStaminaCost(hand[selectedIdx].cost);
-        hint.textContent = `CLICK ANYWHERE · DRAG TO AIM · SHORT DRAG = CANCEL  (costs ${cost})`;
+        // Different hint for touch vs mouse
+        const isTouchDevice = window.matchMedia("(hover: none)").matches;
+        hint.textContent = isTouchDevice
+            ? `SWIPE UP CARD TO ARM · THEN DRAG CANVAS TO AIM  (costs ${cost})`
+            : `CLICK ANYWHERE · DRAG TO AIM · SHORT DRAG = CANCEL  (costs ${cost})`;
         hint.style.opacity="1"; hint.style.color = cost>1 ? "var(--danger)" : "var(--accent)";
     } else if (isBallMoving()) {
         hint.textContent = "BALL ROLLING…";
@@ -1471,11 +1520,15 @@ function updatePhysics() {
         if (d<range&&d>12){ball.vx+=(hole.x-ball.x)*pull; ball.vy+=(hole.y-ball.y)*pull;}
     }
 
-    // Wind force (only when ball is moving meaningfully)
-    if (isBallMoving() && wind.strength > 0) {
+    // Wind force — only active for a fixed window after the shot,
+    // so the ball doesn't roll forever on flat ground
+    if (windFrames > 0 && isBallMoving() && wind.strength > 0) {
         const ws = getWindStrength(wind.strength);
-        ball.vx += Math.cos(wind.angle) * ws;
-        ball.vy += Math.sin(wind.angle) * ws;
+        // Fade out wind force in last 30 frames so stop is gradual
+        const fade = Math.min(1, windFrames / 30);
+        ball.vx += Math.cos(wind.angle) * ws * fade;
+        ball.vy += Math.sin(wind.angle) * ws * fade;
+        windFrames--;
     }
 
     ball.x+=ball.vx; ball.y+=ball.vy;
@@ -1878,5 +1931,6 @@ function newRunFromToast() {
 
 init();
 </script>
+
 </body>
 </html>
