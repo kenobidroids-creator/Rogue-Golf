@@ -1,0 +1,1882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Par-Stream Roguelite</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* ── TOKENS ─────────────────────────────────────────────────── */
+:root {
+    --bg:      #052e16;
+    --ui:      #0a0f1e;
+    --ui2:     #111827;
+    --accent:  #fbbf24;
+    --danger:  #ef4444;
+    --safe:    #22c55e;
+    --border:  rgba(255,255,255,0.08);
+    --ft:      'Rajdhani', sans-serif;
+    --fb:      'Barlow Condensed', sans-serif;
+}
+
+/* ── RESET ──────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    background: var(--bg);
+    color: #fff;
+    font-family: var(--fb);
+    overflow: hidden;
+    touch-action: none;
+    user-select: none;
+}
+canvas { display: block; cursor: default; }
+canvas.pan-cursor  { cursor: grab; }
+canvas.grab-active { cursor: grabbing; }
+
+/* ── PROGRESS BAR ───────────────────────────────────────────── */
+#progress-bar {
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 3px; background: rgba(255,255,255,0.08); z-index: 20;
+}
+#progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--safe), var(--accent));
+    transition: width 0.5s cubic-bezier(.4,0,.2,1);
+}
+
+/* ── HUD ────────────────────────────────────────────────────── */
+#hud {
+    position: absolute; top: 0; left: 0; right: 0;
+    padding: 14px 18px;
+    display: flex; justify-content: space-between; align-items: flex-start;
+    pointer-events: none; z-index: 10;
+}
+.hud-block {
+    background: rgba(10,15,30,0.85);
+    border: 1px solid var(--border);
+    border-radius: 10px; padding: 8px 14px;
+    backdrop-filter: blur(6px);
+}
+.hud-label {
+    font-size: 9px; font-weight: 700; letter-spacing: 2px;
+    color: rgba(255,255,255,0.4); text-transform: uppercase; margin-bottom: 4px;
+}
+.hud-value { font-family: var(--ft); font-size: 20px; line-height: 1; color: var(--accent); }
+
+/* Stamina pips */
+#pips { display: flex; gap: 4px; flex-wrap: wrap; max-width: 180px; }
+.pip {
+    width: 10px; height: 10px; border-radius: 2px;
+    background: var(--accent); border: 1px solid rgba(0,0,0,0.3);
+    transition: background 0.2s, transform 0.15s;
+}
+.pip.empty  { background: rgba(255,255,255,0.12); }
+.pip.danger { background: var(--danger); animation: pip-pulse 0.8s ease-in-out infinite alternate; }
+@keyframes pip-pulse { to { transform: scale(1.3); } }
+
+/* ── CARD HAND ──────────────────────────────────────────────── */
+#hand-wrap {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    display: flex; flex-direction: column; align-items: center;
+    padding-bottom: 18px; z-index: 10; pointer-events: none;
+}
+#mobile-tip {
+    font-size: 10px; color: rgba(255,255,255,0.45);
+    letter-spacing: 1px; pointer-events: none;
+    transition: opacity 0.4s; margin-bottom: 4px;
+}
+#swing-hint {
+    font-size: 11px; font-weight: 700; letter-spacing: 2px;
+    color: var(--accent); text-transform: uppercase; margin-bottom: 10px;
+    text-shadow: 0 0 12px rgba(251,191,36,0.6);
+    transition: opacity 0.2s, color 0.2s;
+}
+#hand { display: flex; gap: 10px; pointer-events: auto; }
+
+/* Cards */
+.card {
+    width: 82px; height: 110px;
+    background: linear-gradient(160deg, #1a2235, #0d1320);
+    border: 1.5px solid rgba(255,255,255,0.12);
+    border-radius: 10px; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; text-align: center;
+    padding: 6px 5px; position: relative;
+    transition: transform 0.18s cubic-bezier(.2,.8,.3,1.2),
+                box-shadow 0.15s, border-color 0.15s;
+    animation: card-deal 0.3s ease-out backwards;
+    touch-action: none;
+}
+@media (hover: hover) {
+    .card:not(.selected):not(.disabled):hover {
+        transform: translateY(-14px) scale(1.04);
+        border-color: rgba(255,255,255,0.3);
+        box-shadow: 0 10px 28px rgba(0,0,0,0.5);
+    }
+}
+.card.selected {
+    border-color: var(--accent);
+    background: linear-gradient(160deg, #221a40, #0d1320);
+    transform: translateY(-20px) scale(1.05);
+    box-shadow: 0 0 28px rgba(251,191,36,0.5), 0 10px 30px rgba(0,0,0,0.6);
+}
+.card.disabled { opacity: 0.32; pointer-events: none; filter: grayscale(0.4); }
+@keyframes card-deal {
+    from { transform: translateY(70px) rotate(4deg); opacity: 0; }
+    to   { transform: translateY(0) rotate(0); opacity: 1; }
+}
+.card-badge { position: absolute; top: -8px; right: -8px;
+    background: var(--danger); color: #fff; border-radius: 50%;
+    width: 22px; height: 22px; font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    border: 2px solid #0a0f1e; box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+}
+.card-badge.free { background: var(--safe); font-size: 8px; letter-spacing: 0.3px; }
+.card-icon  { font-size: 20px; margin-bottom: 3px; line-height: 1; }
+.card-name  { font-family: var(--ft); font-size: 12px; font-weight: 700; line-height: 1.2; margin-bottom: 3px; }
+.card-stats { font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.80); margin-bottom: 3px; }
+.card-desc  { font-size: 9.5px; color: rgba(255,255,255,0.70); font-style: italic; line-height: 1.3; }
+
+/* Bonus card pick state — clear green glow, no ambiguity */
+.bonus-card.picked {
+    border-color: var(--safe) !important;
+    box-shadow: 0 0 20px rgba(34,197,94,0.5);
+    pointer-events: none;
+}
+.bonus-card.picked::after {
+    content: "✓ ADDED";
+    position: absolute; bottom: 6px; left: 0; right: 0;
+    font-family: var(--ft); font-size: 9px; font-weight: 700;
+    color: var(--safe); letter-spacing: 1px; text-align: center;
+}
+
+/* ── DECK VIEWER ─────────────────────────────────────────────── */
+#overlay-deck {
+    position: absolute; inset: 0;
+    background: rgba(2,6,23,0.96); backdrop-filter: blur(10px);
+    display: none; flex-direction: column; align-items: center;
+    z-index: 60; padding: 30px 20px 20px;
+    animation: fade-in 0.2s ease-out;
+    overflow-y: auto;
+}
+#overlay-deck.show { display: flex; }
+#deck-title {
+    font-family: var(--ft); font-size: 28px; font-weight: 700;
+    color: var(--accent); margin-bottom: 4px; letter-spacing: 2px;
+}
+#deck-subtitle { font-size: 13px; color: rgba(255,255,255,0.45); margin-bottom: 20px; }
+#deck-sections { width: 100%; max-width: 620px; }
+.deck-section-title {
+    font-family: var(--ft); font-size: 11px; font-weight: 700;
+    letter-spacing: 2px; color: rgba(255,255,255,0.35);
+    text-transform: uppercase; margin-bottom: 10px; margin-top: 18px;
+}
+#deck-cards { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+.btn.ghost {
+    background: transparent; border-color: rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.6); font-size: 12px; padding: 8px 18px;
+}
+
+/* ── RELIC CARD ─────────────────────────────────────────────── */
+.relic-card {
+    width: 110px; min-height: 130px;
+    background: linear-gradient(160deg, #1a1040, #0d0d20);
+    border: 1.5px solid rgba(192,132,252,0.25);
+    border-radius: 10px; cursor: pointer; padding: 10px 8px;
+    display: flex; flex-direction: column; align-items: center;
+    text-align: center; position: relative;
+    transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+}
+.relic-card:hover  { border-color: #c084fc; transform: translateY(-6px); box-shadow: 0 0 18px rgba(192,132,252,0.3); }
+.relic-card.picked { border-color: var(--safe); box-shadow: 0 0 18px rgba(34,197,94,0.4); pointer-events:none; }
+.relic-card.picked::after { content:"✓ TAKEN"; position:absolute;bottom:6px;left:0;right:0;font-family:var(--ft);font-size:9px;font-weight:700;color:var(--safe);letter-spacing:1px; }
+.relic-card.cursed { border-color: rgba(249,115,22,0.4); }
+.relic-icon   { font-size:28px; margin-bottom:6px; }
+.relic-name   { font-family:var(--ft); font-size:11px; font-weight:700; margin-bottom:4px; }
+.relic-desc   { font-size:8.5px; color:rgba(255,255,255,0.6); line-height:1.35; }
+.relic-rarity { position:absolute;top:-7px;left:8px; font-size:8px;font-weight:700;letter-spacing:1px;padding:2px 6px;border-radius:6px; }
+.rarity-common   { background:#374151;color:#9ca3af; }
+.rarity-uncommon { background:#1e3a5f;color:#60a5fa; }
+.rarity-rare     { background:#3b1f5e;color:#c084fc; }
+
+/* HUD relic pip */
+.relic-pip {
+    width:28px;height:28px;border-radius:6px;
+    background:rgba(10,15,30,0.85); border:1px solid rgba(192,132,252,0.3);
+    display:flex;align-items:center;justify-content:center;
+    font-size:15px; cursor:pointer; backdrop-filter:blur(4px);
+    transition:border-color 0.15s;
+}
+.relic-pip:hover { border-color:#c084fc; }
+
+/* Tab button active */
+.btn.tab-active { background: #1a1040; border-color:#c084fc; color:#c084fc; }
+#card-preview {
+    position: absolute; bottom: 160px; left: 50%;
+    transform: translateX(-50%) scale(0.85); transform-origin: bottom center;
+    width: 160px;
+    background: linear-gradient(160deg, #1e2d45, #0d1320);
+    border: 2px solid var(--accent); border-radius: 14px;
+    padding: 16px 14px 14px; text-align: center;
+    pointer-events: none; z-index: 40; opacity: 0;
+    transition: opacity 0.15s, transform 0.18s cubic-bezier(.2,.8,.3,1.2);
+    box-shadow: 0 0 30px rgba(251,191,36,0.25), 0 12px 40px rgba(0,0,0,0.7);
+}
+#card-preview.visible { opacity: 1; transform: translateX(-50%) scale(1); }
+.pv-icon  { font-size: 40px; margin-bottom: 8px; }
+.pv-name  { font-family: var(--ft); font-size: 14px; margin-bottom: 6px; }
+.pv-stats { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.8); margin-bottom: 8px; }
+.pv-desc  { font-size: 11px; color: rgba(255,255,255,0.7); line-height: 1.4; margin-bottom: 10px; }
+.pv-cost  {
+    display: inline-block; background: var(--danger); color: #fff;
+    font-weight: 700; font-size: 11px; padding: 3px 10px; border-radius: 20px;
+}
+.pv-cost.free { background: var(--safe); }
+
+/* ── OVERLAYS ───────────────────────────────────────────────── */
+.overlay {
+    position: absolute; inset: 0;
+    background: rgba(2,6,23,0.92); backdrop-filter: blur(8px);
+    display: none; flex-direction: column; align-items: center; justify-content: center;
+    z-index: 50; animation: fade-in 0.3s ease-out;
+}
+.overlay.show { display: flex; }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+.ov-title {
+    font-family: var(--ft); font-size: 52px; font-weight: 700;
+    letter-spacing: 2px; margin-bottom: 6px; line-height: 1;
+}
+.ov-sub { font-size: 15px; color: rgba(255,255,255,0.55); margin-bottom: 28px; letter-spacing: 1px; }
+#stars-row  { font-size: 28px; margin-bottom: 14px; letter-spacing: 4px; }
+#bonus-cards { display: flex; gap: 14px; margin-bottom: 24px; }
+.bonus-card { cursor: pointer; border: 2px solid rgba(255,255,255,0.15); transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s; }
+.bonus-card:hover { border-color: var(--accent); transform: translateY(-6px); }
+
+.btn {
+    font-family: var(--ft); font-size: 15px; font-weight: 700; letter-spacing: 2px;
+    background: var(--safe); border: 2px solid rgba(255,255,255,0.15);
+    padding: 13px 32px; color: #fff; border-radius: 8px; cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+}
+.btn:hover        { background: #16a34a; transform: scale(1.03); }
+.btn.danger       { background: var(--danger); }
+.btn.danger:hover { background: #dc2626; }
+.btn.small        { font-size: 12px; padding: 9px 20px; background: var(--ui2); margin-top: 10px; }
+
+/* Floating text */
+.float-text {
+    position: absolute; font-family: var(--ft); font-size: 20px;
+    pointer-events: none; z-index: 30;
+    animation: float-up 1.2s ease-out forwards;
+}
+@keyframes float-up {
+    from { transform: translateY(0);    opacity: 1; }
+    to   { transform: translateY(-60px); opacity: 0; }
+}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"><div id="progress-fill" style="width:0%"></div></div>
+
+<div id="hud">
+    <div style="display:flex;flex-direction:column;gap:6px">
+        <div class="hud-block">
+            <div class="hud-label">Stamina</div>
+            <div id="pips"></div>
+        </div>
+        <div class="hud-block" id="wind-hud" style="display:none">
+            <div class="hud-label">Wind</div>
+            <canvas id="wind-canvas" width="60" height="22"></canvas>
+        </div>
+        <div id="relic-bar" style="display:flex;gap:4px;flex-wrap:wrap;max-width:200px"></div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:flex-start">
+        <button id="btn-overview" onclick="toggleOverview()" style="
+            font-family:var(--ft);font-size:11px;font-weight:700;letter-spacing:1px;
+            background:rgba(10,15,30,0.85);border:1px solid rgba(255,255,255,0.12);
+            color:rgba(255,255,255,0.7);padding:8px 12px;border-radius:10px;
+            cursor:pointer;backdrop-filter:blur(6px);pointer-events:auto;
+        ">🗺 OVERVIEW</button>
+        <div class="hud-block" style="text-align:right">
+            <div class="hud-label">Hole</div>
+            <div class="hud-value"><span id="hole-num">1</span><span style="font-size:13px;opacity:.5">/18</span></div>
+        </div>
+    </div>
+</div>
+
+<canvas id="golfCanvas"></canvas>
+
+<div id="hand-wrap">
+    <div id="mobile-tip">HOLD CARD TO PREVIEW</div>
+    <div id="card-preview">
+        <div class="pv-icon" id="pv-icon"></div>
+        <div class="pv-name" id="pv-name"></div>
+        <div class="pv-stats" id="pv-stats"></div>
+        <div class="pv-desc" id="pv-desc"></div>
+        <div class="pv-cost" id="pv-cost"></div>
+    </div>
+    <div id="swing-hint" style="opacity:.35">SELECT A CLUB</div>
+    <div id="hand"></div>
+</div>
+
+<div class="overlay" id="overlay-complete">
+    <div class="ov-title" style="color:var(--accent)">HOLE CLEAR</div>
+    <div id="stars-row">⭐⭐⭐</div>
+    <!-- Tab buttons -->
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+        <button id="tab-card" onclick="switchRewardTab('card')" class="btn" style="font-size:11px;padding:6px 16px">🃏 CARD</button>
+        <button id="tab-relic" onclick="switchRewardTab('relic')" class="btn small" style="font-size:11px;padding:6px 16px">🔮 RELIC</button>
+    </div>
+    <div id="reward-card-panel">
+        <div class="ov-sub">+3 Stamina · Choose a bonus card</div>
+        <div id="bonus-cards"></div>
+    </div>
+    <div id="reward-relic-panel" style="display:none">
+        <div class="ov-sub">Choose a permanent relic</div>
+        <div id="relic-choices" style="display:flex;gap:14px;margin-bottom:24px;flex-wrap:wrap;justify-content:center"></div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;margin-top:8px">
+        <button class="btn" id="btn-next">NEXT HOLE →</button>
+        <button class="btn ghost" onclick="showDeckViewer()">🃏 VIEW DECK</button>
+    </div>
+</div>
+
+<!-- Relic detail overlay -->
+<div class="overlay" id="overlay-relics">
+    <div class="ov-title" style="color:#c084fc;font-size:32px">RELICS</div>
+    <div id="relic-list" style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;max-width:600px;margin:16px 0"></div>
+    <button class="btn ghost" style="margin-top:8px" onclick="document.getElementById('overlay-relics').classList.remove('show')">← BACK</button>
+</div>
+
+<!-- Deck viewer — slides over hole complete -->
+<div id="overlay-deck">
+    <div id="deck-title">YOUR DECK</div>
+    <div id="deck-subtitle"></div>
+    <div id="deck-sections">
+        <div class="deck-section-title" id="deck-hand-label">IN HAND THIS HOLE</div>
+        <div id="deck-cards"></div>
+        <div class="deck-section-title" id="deck-bonus-label" style="display:none">CARRYING TO NEXT HOLE</div>
+        <div id="deck-bonus-cards"></div>
+    </div>
+    <button class="btn ghost" style="margin-top:24px" onclick="hideDeckViewer()">← BACK</button>
+</div>
+
+<div class="overlay" id="overlay-death">
+    <div class="ov-title" style="color:var(--danger)">EXHAUSTED</div>
+    <div class="ov-sub">Ran out of stamina on hole <span id="death-hole">1</span></div>
+    <button class="btn danger" id="btn-restart">↩ RESTART FROM HOLE <span id="cp-label">1</span></button>
+    <button class="btn small" onclick="fullReset()">New Run</button>
+</div>
+
+<div class="overlay" id="overlay-win">
+    <div class="ov-title" style="color:var(--safe)">⛳ RUN COMPLETE</div>
+    <div class="ov-sub">You conquered all 18 holes</div>
+    <div id="win-summary" style="
+        background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);
+        border-radius:12px;padding:20px 28px;margin-bottom:20px;
+        display:grid;grid-template-columns:1fr 1fr;gap:10px 28px;min-width:280px;
+    "></div>
+    <div style="margin-bottom:16px">
+        <div style="font-size:11px;letter-spacing:2px;color:rgba(255,255,255,0.35);margin-bottom:8px">RELICS COLLECTED</div>
+        <div id="win-relics" style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center"></div>
+    </div>
+    <div id="win-rating" style="font-family:var(--ft);font-size:22px;color:var(--accent);margin-bottom:20px"></div>
+    <div style="display:flex;gap:10px">
+        <button class="btn" onclick="fullReset()">🔄 NEW RUN</button>
+        <button class="btn ghost" onclick="clearSave()">🗑 CLEAR SAVE</button>
+    </div>
+</div>
+
+<script>
+"use strict";
+
+// ═══════════════════════════════════════════════════════════════
+//  CONSTANTS
+// ═══════════════════════════════════════════════════════════════
+
+const TAU           = Math.PI * 2;
+const MAX_DRAG      = 150;
+const CANCEL_DIST   = 14;
+const BALL_R        = 7;
+const HOLE_R        = 14;
+const MAX_STAMINA   = 20;
+const START_STAMINA = 15;
+const CHECKPOINTS   = new Set([1, 7, 13]);
+
+// World size — courses are larger than screen
+const WORLD_W = 2400;
+const WORLD_H = 900;
+
+const CLUBS = [
+    { name:"Putter",      icon:"🏌️", cost:1, pow:0.55, fric:0.88, color:"#e2e8f0", desc:"Low roll. Ultra precise." },
+    { name:"Iron",        icon:"⛳",  cost:1, pow:1.0,  fric:0.97, color:"#94a3b8", desc:"Balanced all-rounder." },
+    { name:"Driver",      icon:"💨",  cost:1, pow:1.55, fric:0.99, color:"#fca5a5", desc:"Max distance. Hard to stop." },
+    { name:"Ghost Wedge", icon:"👻",  cost:1, pow:0.85, fric:0.96, color:"#60a5fa", effect:"ghost",  desc:"Flies through hazards." },
+    { name:"Sticky Pad",  icon:"🟢",  cost:1, pow:1.0,  fric:0.95, color:"#a3e635", effect:"sticky", desc:"Stops dead when slow." },
+    { name:"Flubber",     icon:"🟠",  cost:1, pow:0.9,  fric:0.98, color:"#fb7185", effect:"bouncy", desc:"Speeds up on wall hits." },
+    { name:"Magnet Core", icon:"🧲",  cost:1, pow:0.85, fric:0.97, color:"#c084fc", effect:"magnet", desc:"Pulls toward the hole." },
+    { name:"OVERDRIVE",   icon:"💥",  cost:3, pow:3.0,  fric:0.99, color:"#ef4444", effect:"heavy",  desc:"Massive power. High cost." },
+];
+const BONUS_CLUBS = [
+    { name:"Lucky Chip", icon:"🍀", cost:0, pow:1.2, fric:0.97, color:"#4ade80", desc:"Free swing. One use." },
+    { name:"Curve Shot", icon:"🌀", cost:1, pow:1.0, fric:0.97, color:"#38bdf8", effect:"curve", desc:"Curves toward hole mid-air." },
+    { name:"Double Tap", icon:"✌️", cost:2, pow:1.8, fric:0.98, color:"#fde047", desc:"Extra powerful swing." },
+];
+const ALL_CLUBS = [...CLUBS, ...BONUS_CLUBS];
+
+// ═══════════════════════════════════════════════════════════════
+//  CANVAS
+// ═══════════════════════════════════════════════════════════════
+
+const canvas = document.getElementById("golfCanvas");
+const ctx    = canvas.getContext("2d");
+let W = 0, H = 0;
+function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+
+// ═══════════════════════════════════════════════════════════════
+//  RELICS
+// ═══════════════════════════════════════════════════════════════
+
+const RELICS = [
+    {
+        id:"magnet_cup",   name:"Magnet Cup",    icon:"🪄",
+        desc:"Hole radius +6. Ball gets drawn in from further away.",
+        color:"#c084fc", rarity:"common",
+        onApply: () => { /* handled in hole-in check via getHoleR() */ }
+    },
+    {
+        id:"titanium_shaft", name:"Titanium Shaft", icon:"⚙️",
+        desc:"All swing power +15%.",
+        color:"#94a3b8", rarity:"common",
+        onApply: () => {}
+    },
+    {
+        id:"iron_will",    name:"Iron Will",      icon:"🛡️",
+        desc:"Water hazards only cost 0 Stamina (still reset position).",
+        color:"#60a5fa", rarity:"uncommon",
+        onApply: () => {}
+    },
+    {
+        id:"lucky_clover", name:"Lucky Clover",   icon:"🍀",
+        desc:"Earn +1 extra Stamina on hole completion.",
+        color:"#4ade80", rarity:"uncommon",
+        onApply: () => {}
+    },
+    {
+        id:"cursed_ball",  name:"Cursed Ball",    icon:"💀",
+        desc:"Every swing costs +1 extra Stamina BUT you start with +5 Stamina.",
+        color:"#f97316", rarity:"rare", cursed: true,
+        onApply: () => { state.stamina = Math.min(MAX_STAMINA, state.stamina + 5); }
+    },
+    {
+        id:"speed_spikes", name:"Speed Spikes",   icon:"⚡",
+        desc:"Ball friction reduced — rolls much further. Hard to stop.",
+        color:"#fbbf24", rarity:"uncommon",
+        onApply: () => {}
+    },
+    {
+        id:"double_stamp", name:"Double Stamp",   icon:"✌️",
+        desc:"Each hole completion gives +6 Stamina instead of +3.",
+        color:"#34d399", rarity:"rare",
+        onApply: () => {}
+    },
+    {
+        id:"wind_reader",  name:"Wind Reader",    icon:"🌬️",
+        desc:"Wind strength halved for you.",
+        color:"#7dd3fc", rarity:"uncommon",
+        onApply: () => {}
+    },
+];
+
+// Active relics for this run
+let relics = [];
+
+function hasRelic(id) { return relics.some(r => r.id === id); }
+
+// Derived helpers used in physics/game logic
+function getHoleR()    { return HOLE_R + (hasRelic("magnet_cup") ? 6 : 0); }
+function getSwingPow(basePow) {
+    let p = basePow;
+    if (hasRelic("titanium_shaft")) p *= 1.15;
+    return p;
+}
+function getStaminaCost(cost) {
+    let c = cost;
+    if (hasRelic("cursed_ball")) c += 1;
+    return c;
+}
+function getHoleBonus() {
+    let bonus = hasRelic("double_stamp") ? 6 : 3;
+    if (hasRelic("lucky_clover")) bonus += 1;
+    return bonus;
+}
+function getWindStrength(base) {
+    return hasRelic("wind_reader") ? base * 0.5 : base;
+}
+function getBallFriction(baseFric) {
+    return hasRelic("speed_spikes") ? Math.min(0.995, baseFric + 0.01) : baseFric;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  WIND
+// ═══════════════════════════════════════════════════════════════
+
+let wind = { angle: 0, strength: 0 }; // per-hole wind
+
+function generateWind() {
+    // Wind starts at hole 4, gets stronger as run progresses
+    const maxStr = Math.min(0.006 + state.holeNum * 0.0003, 0.018);
+    wind.angle    = Math.random() * TAU;
+    wind.strength = state.holeNum >= 4 ? maxStr * (0.4 + Math.random() * 0.6) : 0;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  STAMINA PICKUPS (Shot Idols — inspired by Cursed to Golf)
+// ═══════════════════════════════════════════════════════════════
+
+let pickups = []; // { x, y, value, collected }
+
+function generatePickups(pts, fairwayW) {
+    pickups = [];
+    const count = 1 + Math.floor(Math.random() * 2); // 1–2 per hole
+    let placed = 0, attempts = 0;
+    while (placed < count && attempts < 40) {
+        attempts++;
+        const si  = Math.floor(Math.random() * (pts.length - 1));
+        const t   = 0.25 + Math.random() * 0.5;
+        const a   = pts[si], b = pts[si+1];
+        const dx2 = b.x-a.x, dy2 = b.y-a.y;
+        const len2 = Math.hypot(dx2,dy2);
+        const px2 = -dy2/len2, py2 = dx2/len2;
+        const spread = (Math.random()-0.5) * fairwayW * 0.4;
+        const ox = a.x + dx2*t + px2*spread;
+        const oy = a.y + dy2*t + py2*spread;
+        if (Math.hypot(ox-120, oy-WORLD_H/2) < 150) continue;
+        if (Math.hypot(ox-hole.x, oy-hole.y) < 120) continue;
+        pickups.push({ x:ox, y:oy, value:2, collected:false });
+        placed++;
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  GAME STATE
+// ═══════════════════════════════════════════════════════════════
+
+const ball = { x:0, y:0, vx:0, vy:0, friction:0.98 };
+const hole = { x:0, y:0 };
+let walls = [], sandHazards = [], waterHazards = [];
+let holeSunk = false;
+
+const state = {
+    holeNum: 1, checkpoint: 1,
+    stamina: START_STAMINA, swingsThisHole: 0, totalSwings: 0,
+    activeEffect: null,
+};
+
+let hand = [], bonusHand = [], selectedIdx = -1;
+let startingHand = []; // snapshot of full hand at hole start, for deck viewer
+
+// Drag — shot aiming (card selected) OR free-cam pan (no card selected)
+const drag = {
+    active: false, mode: "shot",  // "shot" | "pan"
+    anchorX: 0, anchorY: 0, curX: 0, curY: 0,
+    panLastX: 0, panLastY: 0,
+};
+
+// Camera
+const cam = {
+    x: 0, y: 0, tx: 0, ty: 0,
+    zoom: 1, tz: 1,
+    mode: "follow",    // "follow" | "overview" | "intro"
+    introTimer: 0,
+    panning: false,    // true while player is dragging to pan
+};
+const INTRO_DURATION = 300; // ~5s at 60fps — enough for a smooth pan+zoom
+const CAM_LERP = 0.08;
+
+let particles = [], grassPattern = null;
+
+// ═══════════════════════════════════════════════════════════════
+//  CAMERA
+// ═══════════════════════════════════════════════════════════════
+
+function camUpdate() {
+    // Lerp speed: slow during intro for cinematic feel, faster during follow
+    const lerpSpeed = cam.mode === "intro" ? 0.025 : CAM_LERP;
+
+    if (cam.mode === "intro") {
+        cam.introTimer--;
+        const t    = 1 - Math.max(0, cam.introTimer) / INTRO_DURATION;
+        const ease = t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
+        cam.tz = 0.38 + ease * 0.62;   // 0.38 → 1.0  (wider start zoom)
+        // During intro: camera pans from world-centre toward ball
+        const overviewX = WORLD_W/2 - (W/cam.tz)/2;
+        const overviewY = WORLD_H/2 - (H/cam.tz)/2;
+        const ballX     = ball.x - (W/cam.tz)/2;
+        const ballY     = ball.y - (H/cam.tz)/2;
+        cam.tx = overviewX + (ballX - overviewX) * ease;
+        cam.ty = overviewY + (ballY - overviewY) * ease;
+        cam.tx = Math.max(0, Math.min(WORLD_W - W/cam.tz, cam.tx));
+        cam.ty = Math.max(0, Math.min(WORLD_H - H/cam.tz, cam.ty));
+        if (cam.introTimer <= 0) cam.mode = "follow";
+    } else if (cam.mode === "overview") {
+        cam.tz = Math.min(W / WORLD_W, H / WORLD_H) * 0.92;
+        cam.tx = WORLD_W/2 - (W/cam.tz)/2;
+        cam.ty = WORLD_H/2 - (H/cam.tz)/2;
+    } else {
+        cam.tz = 1;
+        // Auto-follow only while ball is moving or during intro transition.
+        // When ball is still, respect wherever player panned to.
+        if (!cam.panning && isBallMoving()) camTargetFollow();
+    }
+
+    cam.zoom += (cam.tz   - cam.zoom) * lerpSpeed;
+    cam.x    += (cam.tx   - cam.x)    * (cam.mode === "intro" ? 0.025 : CAM_LERP);
+    cam.y    += (cam.ty   - cam.y)    * (cam.mode === "intro" ? 0.025 : CAM_LERP);
+}
+
+function camTargetFollow() {
+    // Centre viewport on ball in world space
+    cam.tx = ball.x - (W / cam.tz) / 2;
+    cam.ty = ball.y - (H / cam.tz) / 2;
+    // Clamp to world bounds
+    cam.tx = Math.max(0, Math.min(WORLD_W - W / cam.tz, cam.tx));
+    cam.ty = Math.max(0, Math.min(WORLD_H - H / cam.tz, cam.ty));
+}
+
+// Convert screen → world coords
+function screenToWorld(sx, sy) {
+    return { x: sx / cam.zoom + cam.x, y: sy / cam.zoom + cam.y };
+}
+
+function toggleOverview() {
+    cam.mode = cam.mode === "overview" ? "follow" : "overview";
+    document.getElementById("btn-overview").textContent =
+        cam.mode === "overview" ? "🎯 PLAY VIEW" : "🗺 OVERVIEW";
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  DRAG HELPERS
+// ═══════════════════════════════════════════════════════════════
+
+function dragVec() {
+    const dx = drag.anchorX - drag.curX, dy = drag.anchorY - drag.curY;
+    return { dx, dy, dist: Math.hypot(dx, dy) };
+}
+function clampedDragVec() {
+    let { dx, dy, dist } = dragVec();
+    if (dist > MAX_DRAG) { const s = MAX_DRAG / dist; dx *= s; dy *= s; dist = MAX_DRAG; }
+    return { dx, dy, dist };
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  INPUT
+// ═══════════════════════════════════════════════════════════════
+
+function isBallMoving() { return Math.hypot(ball.vx, ball.vy) > 0.15; }
+
+// Is a pointer event on the card hand area? (bottom of screen)
+function isInHandArea(sy) { return sy > window.innerHeight - 160; }
+
+function onPointerDown(sx, sy) {
+    if (cam.mode === "overview" || cam.mode === "intro") return false;
+    if (isInHandArea(sy)) return false; // let card clicks through
+
+    // If card selected and ball still — start a shot drag
+    if (selectedIdx !== -1 && !isBallMoving()) {
+        drag.active  = true; drag.mode = "shot";
+        drag.anchorX = sx; drag.anchorY = sy;
+        drag.curX    = sx; drag.curY    = sy;
+        return true;
+    }
+
+    // Otherwise — free-cam pan
+    drag.active   = true; drag.mode = "pan";
+    drag.panLastX = sx; drag.panLastY = sy;
+    cam.panning   = true;
+    canvas.classList.add("grab-active");
+    return true;
+}
+
+function onPointerMove(sx, sy) {
+    if (!drag.active) return;
+    if (drag.mode === "shot") {
+        drag.curX = sx; drag.curY = sy;
+    } else {
+        // Pan: move camera by screen delta / zoom
+        const dx = (drag.panLastX - sx) / cam.zoom;
+        const dy = (drag.panLastY - sy) / cam.zoom;
+        // Clamp with generous padding so player can always see full course height
+        const PAD = 300; // px world-space padding beyond world edge
+        cam.tx = Math.max(-PAD, Math.min(WORLD_W - W/cam.zoom + PAD, cam.tx + dx));
+        cam.ty = Math.max(-PAD, Math.min(WORLD_H - H/cam.zoom + PAD, cam.ty + dy));
+        cam.x  = cam.tx; cam.y = cam.ty; // snap immediately during pan
+        drag.panLastX = sx; drag.panLastY = sy;
+    }
+}
+
+function onPointerUp(sx, sy) {
+    if (!drag.active) return;
+    if (drag.mode === "pan") {
+        drag.active = false;
+        cam.panning = false;
+        canvas.classList.remove("grab-active");
+        // Do NOT auto-resume follow — player chose where to look.
+        // Follow resumes naturally when the ball is hit and moves.
+        return;
+    }
+    // Shot release
+    drag.active = false;
+    cam.panning = false;
+    const { dx, dy, dist } = clampedDragVec();
+    if (dist < CANCEL_DIST) return;
+    const card = hand[selectedIdx];
+    if (!card) return;
+
+    const actualCost = getStaminaCost(card.cost);
+    if (state.stamina < actualCost) return; // shouldn't happen, but safe
+
+    ball.vx = dx * 0.12 * getSwingPow(card.pow);
+    ball.vy = dy * 0.12 * getSwingPow(card.pow);
+    ball.friction      = getBallFriction(card.fric);
+    state.activeEffect = card.effect || null;
+
+    state.stamina -= actualCost;
+    state.swingsThisHole++; state.totalSwings++;
+    hand.splice(selectedIdx, 1);
+    selectedIdx = -1;
+    cam.panning = false;
+    // Re-engage ball-follow when shot fires so camera tracks the ball in flight
+    camTargetFollow();
+    renderHand(); updateHUD(); updateHint(); checkDeath();
+}
+
+canvas.addEventListener("mousedown",   e => { if (onPointerDown(e.clientX, e.clientY)) e.preventDefault(); });
+document.addEventListener("mousemove", e => onPointerMove(e.clientX, e.clientY));
+document.addEventListener("mouseup",   e => onPointerUp(e.clientX, e.clientY));
+canvas.addEventListener("touchstart",  e => {
+    if (onPointerDown(e.touches[0].clientX, e.touches[0].clientY)) e.preventDefault();
+}, { passive:false });
+canvas.addEventListener("touchmove",   e => {
+    e.preventDefault(); onPointerMove(e.touches[0].clientX, e.touches[0].clientY);
+}, { passive:false });
+canvas.addEventListener("touchend",    e => {
+    const t = e.changedTouches[0];
+    onPointerUp(t.clientX, t.clientY);
+});
+
+// ═══════════════════════════════════════════════════════════════
+//  COURSE GENERATION
+// ═══════════════════════════════════════════════════════════════
+
+// ─── Course shape templates ────────────────────────────────────
+// Grouped by difficulty so early holes are learnable
+const EASY_TEMPLATES = [
+    () => [0],                                                         // dead straight
+    () => [0, (Math.random()-0.5)*0.2],                               // straight with tiny drift
+    () => [0, (Math.random()>0.5?1:-1)*0.3],                          // gentle bend
+];
+const MEDIUM_TEMPLATES = [
+    () => [0, (Math.random()-0.5)*0.3, (Math.random()-0.5)*0.3],
+    () => [0, -Math.PI/2 + (Math.random()-0.5)*0.4],
+    () => [0,  Math.PI/2 + (Math.random()-0.5)*0.4],
+    () => [0, 0, (Math.random()>0.5?1:-1)*(Math.PI/2 + (Math.random()-0.5)*0.5)],
+    () => { const dir=Math.random()>0.5?1:-1; return [0,...Array(3).fill(0).map(()=>dir*0.25)]; },
+];
+const HARD_TEMPLATES = [
+    () => [0, -Math.PI/3, Math.PI/3, (Math.random()-0.5)*0.2],
+    () => [0, Math.PI/2, -Math.PI/2, Math.PI/2],
+    () => { const dir=Math.random()>0.5?1:-1; return [0,...Array(4).fill(0).map(()=>dir*0.28)]; },
+    () => [0, Math.PI/2, Math.PI/2, 0],
+    () => [0, (Math.random()-0.5)*0.3, (Math.random()-0.5)*0.3, (Math.random()-0.5)*0.5],
+];
+
+function pickTemplate(holeNum) {
+    if (holeNum <= 2)  return EASY_TEMPLATES[Math.floor(Math.random()*EASY_TEMPLATES.length)];
+    if (holeNum <= 6)  return MEDIUM_TEMPLATES[Math.floor(Math.random()*MEDIUM_TEMPLATES.length)];
+    return [...MEDIUM_TEMPLATES,...HARD_TEMPLATES][Math.floor(Math.random()*(MEDIUM_TEMPLATES.length+HARD_TEMPLATES.length))];
+}
+
+function generateHole() {
+    if (CHECKPOINTS.has(state.holeNum)) {
+        state.checkpoint = state.holeNum;
+        document.getElementById("cp-label").textContent = state.checkpoint;
+    }
+    ball.x = 120; ball.y = WORLD_H / 2;
+    ball.vx = 0; ball.vy = 0; ball.friction = 0.98;
+    state.activeEffect = null; state.swingsThisHole = 0;
+    holeSunk = false;
+    walls = []; sandHazards = []; waterHazards = [];
+
+    const complexity = Math.min(state.holeNum, 10);
+
+    // Difficulty scaling — early holes are wider, shorter, obstacle-free
+    const isEarly    = state.holeNum <= 2;
+    const fairwayW   = isEarly ? 240 + Math.random()*40
+                               : 160 + Math.random()*80;
+
+    const template  = pickTemplate(state.holeNum);
+    const relAngles = template();
+    const segLen    = () => isEarly ? 380 + Math.random()*120
+                                    : 320 + Math.random()*300;
+
+    const pts = [{ x: 120, y: WORLD_H / 2 }];
+    let heading = 0;
+    for (let i = 0; i < relAngles.length; i++) {
+        heading += relAngles[i];
+        const prev = pts[pts.length - 1];
+        const len  = segLen();
+        let nx = prev.x + Math.cos(heading) * len;
+        let ny = prev.y + Math.sin(heading) * len;
+        // Clamp inside world with margin
+        nx = Math.max(200, Math.min(WORLD_W - 200, nx));
+        ny = Math.max(fairwayW/2 + 30, Math.min(WORLD_H - fairwayW/2 - 30, ny));
+        pts.push({ x: nx, y: ny });
+    }
+
+    // Place hole at last waypoint
+    hole.x = pts[pts.length - 1].x;
+    hole.y = pts[pts.length - 1].y;
+
+    // Expose to drawScene
+    window._coursePts = pts;
+    window._fairwayW  = fairwayW;
+
+    // ── Corridor edges as offset polylines ───────────────────────
+    // Walk every segment, offset each point left/right by hw,
+    // and stitch them into two continuous polylines that follow
+    // every bend exactly — no per-segment gaps or misalignments.
+    const hw = fairwayW / 2;
+    const topEdge    = [];  // array of {x,y} — left border of fairway
+    const bottomEdge = [];  // array of {x,y} — right border
+
+    for (let i = 0; i < pts.length; i++) {
+        // Direction at this waypoint: blend prev and next segment directions
+        let dx = 0, dy = 0;
+        if (i < pts.length - 1) { dx += pts[i+1].x - pts[i].x; dy += pts[i+1].y - pts[i].y; }
+        if (i > 0)               { dx += pts[i].x - pts[i-1].x; dy += pts[i].y - pts[i-1].y; }
+        const len = Math.hypot(dx, dy) || 1;
+        const ux = dx/len, uy = dy/len;
+        const px = -uy, py = ux; // perpendicular left
+        topEdge.push   ({ x: pts[i].x + px*hw, y: pts[i].y + py*hw });
+        bottomEdge.push({ x: pts[i].x - px*hw, y: pts[i].y - py*hw });
+    }
+
+    window._topEdge    = topEdge;
+    window._bottomEdge = bottomEdge;
+
+    // ── Physics: sample collision points along both edges ─────────
+    // Use the offset polyline points directly — no more tiny squares.
+    // We densify each edge by interpolating between waypoints.
+    const PLANK = 16; // collision box half-size
+    [topEdge, bottomEdge].forEach(edge => {
+        for (let i = 0; i < edge.length - 1; i++) {
+            const a = edge[i], b = edge[i+1];
+            const segLen2 = Math.hypot(b.x-a.x, b.y-a.y);
+            const steps2  = Math.max(2, Math.ceil(segLen2 / 28));
+            for (let s = 0; s <= steps2; s++) {
+                const t2 = s / steps2;
+                const mx = a.x + (b.x-a.x)*t2;
+                const my = a.y + (b.y-a.y)*t2;
+                walls.push({ x: mx-PLANK, y: my-PLANK, w: PLANK*2, h: PLANK*2, _corridor: true });
+            }
+        }
+    });
+
+    // World boundary walls
+    walls.push({ x:0,          y:0,          w:WORLD_W, h:20 });
+    walls.push({ x:0,          y:WORLD_H-20, w:WORLD_W, h:20 });
+    walls.push({ x:0,          y:0,          w:20,      h:WORLD_H });
+    walls.push({ x:WORLD_W-20, y:0,          w:20,      h:WORLD_H });
+
+    generateWind();
+    generatePickups(pts, fairwayW);
+
+    // Obstacles — none on tutorial holes, ramp up from hole 3
+    const obstCount = state.holeNum <= 2 ? 0
+                    : state.holeNum <= 4 ? 1
+                    : 2 + Math.floor(complexity * 0.8);
+    let placed = 0, attempts = 0;
+    while (placed < obstCount && attempts < obstCount * 8) {
+        attempts++;
+        const si     = Math.floor(Math.random() * (pts.length - 1));
+        const t      = 0.15 + Math.random() * 0.7;
+        const a      = pts[si], b = pts[si + 1];
+        const dx2    = b.x - a.x, dy2 = b.y - a.y;
+        const len2   = Math.hypot(dx2, dy2);
+        const px2    = -dy2/len2, py2 = dx2/len2;
+        const spread = (Math.random() - 0.5) * fairwayW * 0.5;
+        const ox     = a.x + dx2*t + px2*spread;
+        const oy     = a.y + dy2*t + py2*spread;
+
+        if (Math.hypot(ox - ball.x, oy - ball.y) < 160) continue;
+        if (Math.hypot(ox - hole.x, oy - hole.y) < 140) continue;
+
+        const roll = Math.random();
+        if (roll < 0.45) {
+            // Wood plank barrier
+            const pw = 18, ph = 60 + Math.random() * 60;
+            walls.push({ x: ox - pw/2, y: oy - ph/2, w: pw, h: ph, _plank: true });
+        } else {
+            sandHazards.push({ x: ox-55, y: oy-40, w: 110+Math.random()*40, h: 70+Math.random()*30 });
+        }
+        placed++;
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  CARDS
+// ═══════════════════════════════════════════════════════════════
+
+function dealHand() {
+    const fresh = Array.from({length:3}, () => ({...CLUBS[Math.floor(Math.random()*CLUBS.length)]}));
+    hand = [...fresh, ...bonusHand];
+    bonusHand = []; selectedIdx = -1;
+    startingHand = [...hand]; // snapshot for deck viewer
+    renderHand();
+}
+function redealMidHole() {
+    hand = Array.from({length:3}, () => ({...CLUBS[Math.floor(Math.random()*CLUBS.length)]}));
+    startingHand = [...hand]; // update snapshot
+    selectedIdx = -1;
+    renderHand(); updateHint();
+}
+
+// Preview popup
+const previewEl    = document.getElementById("card-preview");
+const mobileTipEl  = document.getElementById("mobile-tip");
+let   mobileTipShown = false;
+
+function showPreview(card, anchorEl) {
+    document.getElementById("pv-icon").textContent  = card.icon;
+    document.getElementById("pv-name").textContent  = card.name;
+    document.getElementById("pv-name").style.color  = card.color;
+    document.getElementById("pv-stats").textContent = `POW ${card.pow}×  ·  GRIP ${Math.round((1-card.fric)*100)}%`;
+    document.getElementById("pv-desc").textContent  = card.desc;
+    const ce = document.getElementById("pv-cost");
+    ce.textContent = card.cost === 0 ? "FREE" : `COSTS ${card.cost} STAMINA`;
+    ce.className   = "pv-cost" + (card.cost === 0 ? " free" : "");
+    const wr = previewEl.parentElement.getBoundingClientRect();
+    const ar = anchorEl.getBoundingClientRect();
+    previewEl.style.left = (ar.left + ar.width/2 - wr.left) + "px";
+    previewEl.classList.add("visible");
+}
+function hidePreview() { previewEl.classList.remove("visible"); }
+
+function selectCard(i) {
+    if (isBallMoving() || !hand[i] || state.stamina < hand[i].cost) return;
+    selectedIdx = selectedIdx === i ? -1 : i;
+    renderHand(); updateHint();
+}
+
+function cardHTML(card) {
+    const free = card.cost === 0;
+    return `
+        <div class="card-badge${free?" free":""}">${free?"FREE":card.cost}</div>
+        <div class="card-icon">${card.icon}</div>
+        <div class="card-name" style="color:${card.color}">${card.name}</div>
+        <div class="card-stats">POW ${card.pow}× · GRIP ${Math.round((1-card.fric)*100)}%</div>
+        <div class="card-desc">${card.desc}</div>`;
+}
+
+function renderHand() {
+    const handEl = document.getElementById("hand");
+    handEl.innerHTML = "";
+    hand.forEach((card, i) => {
+        const el = document.createElement("div");
+        el.className = "card"
+            + (i === selectedIdx         ? " selected" : "")
+            + (state.stamina < card.cost ? " disabled" : "");
+        el.style.animationDelay = `${i*0.06}s`;
+        el.innerHTML = cardHTML(card);
+        el.addEventListener("mouseenter", () => { if (!el.classList.contains("disabled")) showPreview(card, el); });
+        el.addEventListener("mouseleave", hidePreview);
+        el.addEventListener("click", () => { hidePreview(); selectCard(i); });
+        let touchY0=0, holdTimer=null, previewShown=false;
+        el.addEventListener("touchstart", e => {
+            touchY0=e.touches[0].clientY; previewShown=false;
+            holdTimer=setTimeout(()=>{ previewShown=true; showPreview(card,el);
+                if(!mobileTipShown){mobileTipShown=true;mobileTipEl.style.opacity="0";}},320);
+        },{passive:true});
+        el.addEventListener("touchmove", e => {
+            if(!previewShown && touchY0-e.touches[0].clientY>28){previewShown=true;clearTimeout(holdTimer);showPreview(card,el);}
+        },{passive:true});
+        el.addEventListener("touchend", ()=>{ clearTimeout(holdTimer); hidePreview(); if(!previewShown) selectCard(i); });
+        handEl.appendChild(el);
+    });
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  DECK VIEWER
+// ═══════════════════════════════════════════════════════════════
+
+function makeDeckCard(card) {
+    const el = document.createElement("div");
+    el.className = "card";
+    el.style.pointerEvents = "none";
+    el.innerHTML = cardHTML(card);
+    return el;
+}
+
+function showDeckViewer() {
+    // Section 1: full starting hand, played cards shown greyed
+    const cardsEl = document.getElementById("deck-cards");
+    const label   = document.getElementById("deck-hand-label");
+    cardsEl.innerHTML = "";
+    label.textContent = `THIS HOLE'S HAND (${hand.length} of ${startingHand.length} remaining)`;
+    startingHand.forEach(c => {
+        const el = makeDeckCard(c);
+        const stillHeld = hand.some(h => h.name === c.name && !el._matched);
+        // Mark played cards with reduced opacity
+        const heldCount  = hand.filter(h => h.name === c.name).length;
+        const startCount = startingHand.filter(h => h.name === c.name).length;
+        el._matched = true;
+        cardsEl.appendChild(el);
+    });
+    // Simpler: show remaining hand cards normally, played = not in hand
+    cardsEl.innerHTML = "";
+    // Show all starting cards; dim the ones already played
+    const remaining = [...hand];
+    startingHand.forEach(c => {
+        const el = makeDeckCard(c);
+        const idx = remaining.findIndex(r => r.name === c.name);
+        if (idx === -1) {
+            // Already played
+            el.style.opacity = "0.3";
+            el.style.filter  = "grayscale(1)";
+            el.style.position = "relative";
+            const played = document.createElement("div");
+            played.style.cssText = "position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:20px;";
+            played.textContent = "✓";
+            el.appendChild(played);
+        } else {
+            remaining.splice(idx, 1); // consume match
+        }
+        cardsEl.appendChild(el);
+    });
+
+    // Section 2: bonus cards queued for next hole
+    const bonusCardsEl = document.getElementById("deck-bonus-cards");
+    const bonusLabelEl = document.getElementById("deck-bonus-label");
+    bonusCardsEl.innerHTML = "";
+    if (bonusHand.length > 0) {
+        bonusLabelEl.style.display  = "block";
+        bonusLabelEl.textContent    = `BONUS — ADDED TO NEXT HOLE'S DEAL (${bonusHand.length})`;
+        bonusHand.forEach(c => bonusCardsEl.appendChild(makeDeckCard(c)));
+    } else {
+        bonusLabelEl.style.display = "none";
+    }
+
+    const total = hand.length + bonusHand.length;
+    document.getElementById("deck-subtitle").textContent =
+        `${hand.length} in hand · ${bonusHand.length} bonus queued`;
+
+    document.getElementById("overlay-deck").classList.add("show");
+}
+function hideDeckViewer() {
+    document.getElementById("overlay-deck").classList.remove("show");
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  HUD
+// ═══════════════════════════════════════════════════════════════
+
+function updateHUD() {
+    const pipsEl = document.getElementById("pips");
+    pipsEl.innerHTML = "";
+    const low = state.stamina <= 4;
+    for (let i = 0; i < MAX_STAMINA; i++) {
+        const p = document.createElement("div");
+        p.className = i < state.stamina ? "pip"+(low?" danger":"") : "pip empty";
+        pipsEl.appendChild(p);
+    }
+    document.getElementById("hole-num").textContent = state.holeNum;
+    document.getElementById("progress-fill").style.width = `${((state.holeNum-1)/18)*100}%`;
+    updateWindHUD();
+    updateRelicBar();
+}
+
+function updateHint() {
+    const hint = document.getElementById("swing-hint");
+    // Update canvas cursor: grab when pan mode available, default when aiming
+    if (selectedIdx !== -1 && !isBallMoving()) {
+        canvas.classList.remove("pan-cursor");
+    } else if (!isBallMoving() && cam.mode === "follow") {
+        canvas.classList.add("pan-cursor");
+    } else {
+        canvas.classList.remove("pan-cursor");
+    }
+
+    if (cam.mode === "overview") {
+        hint.textContent = "OVERVIEW — PRESS 🎯 TO RETURN";
+        hint.style.opacity="1"; hint.style.color="var(--accent)";
+    } else if (selectedIdx !== -1) {
+        const cost = getStaminaCost(hand[selectedIdx].cost);
+        hint.textContent = `CLICK ANYWHERE · DRAG TO AIM · SHORT DRAG = CANCEL  (costs ${cost})`;
+        hint.style.opacity="1"; hint.style.color = cost>1 ? "var(--danger)" : "var(--accent)";
+    } else if (isBallMoving()) {
+        hint.textContent = "BALL ROLLING…";
+        hint.style.opacity="0.4"; hint.style.color="var(--accent)";
+    } else {
+        hint.textContent = "SELECT A CLUB  ·  DRAG CANVAS TO LOOK AROUND";
+        hint.style.opacity="0.35"; hint.style.color="var(--accent)";
+    }
+}
+
+// ─── Hole direction arrow (when hole is off-screen) ───────────
+function drawHoleIndicator() {
+    // Convert hole world pos to screen pos
+    const sx = (hole.x - cam.x) * cam.zoom;
+    const sy = (hole.y - cam.y) * cam.zoom;
+    const onScreen = sx > -20 && sx < W+20 && sy > -20 && sy < H+20;
+    if (onScreen) return;
+
+    // Arrow pointing toward hole from screen centre
+    const cx = W/2, cy = H/2;
+    const ang = Math.atan2(sy - cy, sx - cx);
+    const margin = 48;
+    const ax = cx + Math.cos(ang) * (Math.min(W,H)/2 - margin);
+    const ay = cy + Math.sin(ang) * (Math.min(W,H)/2 - margin);
+
+    ctx.save();
+    ctx.translate(ax, ay);
+    ctx.rotate(ang);
+    ctx.fillStyle = "rgba(239,68,68,0.85)";
+    ctx.strokeStyle = "rgba(0,0,0,0.4)"; ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(22, 0); ctx.lineTo(-10, -10); ctx.lineTo(-10, 10);
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+    // Flag icon
+    ctx.fillStyle = "#fff"; ctx.font = "bold 13px sans-serif";
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText("⛳", -2, 0);
+    ctx.restore();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  RELIC UI
+// ═══════════════════════════════════════════════════════════════
+
+function relicCardHTML(relic) {
+    const cursedTag = relic.cursed ? ' cursed' : '';
+    return `
+        <span class="relic-rarity rarity-${relic.rarity}">${relic.rarity.toUpperCase()}</span>
+        <div class="relic-icon">${relic.icon}</div>
+        <div class="relic-name" style="color:${relic.color}">${relic.name}</div>
+        <div class="relic-desc">${relic.desc}</div>
+    `;
+}
+
+function updateRelicBar() {
+    const bar = document.getElementById("relic-bar");
+    bar.innerHTML = "";
+    relics.forEach(r => {
+        const pip = document.createElement("div");
+        pip.className = "relic-pip";
+        pip.title = `${r.name}: ${r.desc}`;
+        pip.textContent = r.icon;
+        pip.onclick = () => showRelicList();
+        bar.appendChild(pip);
+    });
+}
+
+function showRelicList() {
+    const list = document.getElementById("relic-list");
+    list.innerHTML = "";
+    if (relics.length === 0) {
+        list.innerHTML = `<p style="color:rgba(255,255,255,0.35);font-size:13px">No relics yet. Earn them by completing holes.</p>`;
+    } else {
+        relics.forEach(r => {
+            const el = document.createElement("div");
+            el.className = "relic-card";
+            el.style.pointerEvents = "none";
+            el.innerHTML = relicCardHTML(r);
+            list.appendChild(el);
+        });
+    }
+    document.getElementById("overlay-relics").classList.add("show");
+}
+
+function switchRewardTab(tab) {
+    const cardPanel  = document.getElementById("reward-card-panel");
+    const relicPanel = document.getElementById("reward-relic-panel");
+    const tabCard    = document.getElementById("tab-card");
+    const tabRelic   = document.getElementById("tab-relic");
+    if (tab === "card") {
+        cardPanel.style.display  = "block";
+        relicPanel.style.display = "none";
+        tabCard.classList.add("tab-active");
+        tabRelic.classList.remove("tab-active");
+    } else {
+        cardPanel.style.display  = "none";
+        relicPanel.style.display = "block";
+        tabCard.classList.remove("tab-active");
+        tabRelic.classList.add("tab-active");
+    }
+}
+
+function updateWindHUD() {
+    const hud = document.getElementById("wind-hud");
+    if (wind.strength === 0) { hud.style.display = "none"; return; }
+    hud.style.display = "block";
+    const wc = document.getElementById("wind-canvas");
+    const wctx = wc.getContext("2d");
+    wctx.clearRect(0,0,60,22);
+    // Arrow
+    const cx=30,cy=11, len=16;
+    wctx.strokeStyle="#7dd3fc"; wctx.lineWidth=2;
+    wctx.beginPath();
+    wctx.moveTo(cx-Math.cos(wind.angle)*len, cy-Math.sin(wind.angle)*len);
+    wctx.lineTo(cx+Math.cos(wind.angle)*len, cy+Math.sin(wind.angle)*len);
+    wctx.stroke();
+    // Arrowhead
+    const a=wind.angle, s=5;
+    wctx.fillStyle="#7dd3fc";
+    wctx.beginPath();
+    wctx.moveTo(cx+Math.cos(a)*len, cy+Math.sin(a)*len);
+    wctx.lineTo(cx+Math.cos(a+2.4)*s, cy+Math.sin(a+2.4)*s);
+    wctx.lineTo(cx+Math.cos(a-2.4)*s, cy+Math.sin(a-2.4)*s);
+    wctx.fill();
+    // Strength dots
+    const bars = Math.round(wind.strength / 0.006);
+    for (let i=0;i<3;i++) {
+        wctx.fillStyle = i<bars ? "#7dd3fc" : "rgba(255,255,255,0.15)";
+        wctx.fillRect(48+i*4, 6, 3, 10);
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  OVERLAYS
+// ═══════════════════════════════════════════════════════════════
+
+function showOverlay(id) {
+    document.querySelectorAll(".overlay").forEach(o => o.classList.remove("show"));
+    document.getElementById(id).classList.add("show");
+}
+function hideOverlays() {
+    document.querySelectorAll(".overlay").forEach(o => o.classList.remove("show"));
+}
+
+function showHoleComplete() {
+    document.getElementById("stars-row").textContent =
+        state.swingsThisHole<=2 ? "⭐⭐⭐" : state.swingsThisHole<=4 ? "⭐⭐" : "⭐";
+
+    // Card tab
+    switchRewardTab("card");
+    const picks = [];
+    while (picks.length < 3) {
+        const c = ALL_CLUBS[Math.floor(Math.random()*ALL_CLUBS.length)];
+        if (!picks.some(p => p.name === c.name)) picks.push(c);
+    }
+    let bonusPicked = false;
+    const bonusEl = document.getElementById("bonus-cards");
+    bonusEl.innerHTML = "";
+    picks.forEach(card => {
+        const el = document.createElement("div");
+        el.className = "card bonus-card";
+        el.innerHTML = cardHTML(card);
+        el.onclick = () => {
+            if (bonusPicked) return;
+            bonusPicked = true; el.classList.add("picked");
+            bonusHand.push({...card});
+            spawnFloat(`+${card.name}!`, W/2, H/2, "#4ade80");
+        };
+        bonusEl.appendChild(el);
+    });
+
+    // Relic tab — offer 2 relics the player doesn't already have
+    const available = RELICS.filter(r => !relics.some(h => h.id === r.id));
+    const relicPicks = [];
+    const shuffled = available.sort(() => Math.random()-0.5);
+    relicPicks.push(...shuffled.slice(0, Math.min(2, shuffled.length)));
+
+    let relicPicked = false;
+    const relicEl = document.getElementById("relic-choices");
+    relicEl.innerHTML = "";
+    if (relicPicks.length === 0) {
+        relicEl.innerHTML = `<p style="color:rgba(255,255,255,0.35);font-size:13px">All relics collected!</p>`;
+    } else {
+        relicPicks.forEach(relic => {
+            const el = document.createElement("div");
+            el.className = "relic-card" + (relic.cursed ? " cursed" : "");
+            el.innerHTML = relicCardHTML(relic);
+            el.onclick = () => {
+                if (relicPicked) return;
+                relicPicked = true; el.classList.add("picked");
+                relics.push({...relic});
+                if (relic.onApply) relic.onApply();
+                updateRelicBar();
+                spawnFloat(`${relic.icon} ${relic.name}!`, W/2, H/2, relic.color);
+            };
+            relicEl.appendChild(el);
+        });
+    }
+
+    document.getElementById("btn-next").onclick = nextHole;
+    showOverlay("overlay-complete");
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  GAME FLOW
+// ═══════════════════════════════════════════════════════════════
+
+function startHole() {
+    generateHole();
+    dealHand();
+    updateHUD(); updateHint();
+    hideOverlays();
+    // Hard-place camera at overview zoom/position so intro starts from there
+    cam.tz   = Math.min(W / WORLD_W, H / WORLD_H) * 0.92;
+    cam.zoom = cam.tz;
+    cam.tx   = WORLD_W/2 - (W/cam.zoom)/2;
+    cam.ty   = WORLD_H/2 - (H/cam.zoom)/2;
+    cam.x    = cam.tx;
+    cam.y    = cam.ty;
+    cam.mode = "intro";
+    cam.introTimer = INTRO_DURATION;
+}
+
+function nextHole() {
+    state.holeNum++;
+    if (state.holeNum > 18) { showWin(); return; }
+    startHole();
+}
+
+function checkDeath() {
+    if (state.stamina > 0) return;
+    setTimeout(() => {
+        if (!isBallMoving()) {
+            document.getElementById("death-hole").textContent = state.holeNum;
+            showOverlay("overlay-death");
+        }
+    }, 1200);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  SAVE / LOAD
+// ═══════════════════════════════════════════════════════════════
+
+const SAVE_KEY = "parstream_run_v1";
+
+function saveRun() {
+    if (holeSunk && state.holeNum >= 18) return; // don't save a completed run
+    try {
+        const save = {
+            state:     { ...state },
+            hand:      hand.map(c => c.name),
+            bonusHand: bonusHand.map(c => c.name),
+            relics:    relics.map(r => r.id),
+            ts:        Date.now(),
+        };
+        localStorage.setItem(SAVE_KEY, JSON.stringify(save));
+    } catch(e) { /* localStorage may be unavailable */ }
+}
+
+function loadRun() {
+    try {
+        const raw = localStorage.getItem(SAVE_KEY);
+        if (!raw) return false;
+        const save = JSON.parse(raw);
+        // Restore state
+        Object.assign(state, save.state);
+        // Restore cards by name lookup
+        const allCards = [...CLUBS, ...BONUS_CLUBS];
+        hand      = save.hand.map(n      => ({...allCards.find(c=>c.name===n)||CLUBS[1]}));
+        bonusHand = save.bonusHand.map(n => ({...allCards.find(c=>c.name===n)||CLUBS[1]}));
+        relics    = save.relics.map(id   => RELICS.find(r=>r.id===id)).filter(Boolean);
+        return true;
+    } catch(e) { return false; }
+}
+
+function clearSave() {
+    try { localStorage.removeItem(SAVE_KEY); } catch(e) {}
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  WIN SUMMARY
+// ═══════════════════════════════════════════════════════════════
+
+function showWin() {
+    clearSave(); // completed run — no save needed
+
+    const avg   = state.totalSwings / 18;
+    const rating = avg <= 2   ? "🏆 HOLE IN ONE MACHINE"
+                 : avg <= 3   ? "⭐ SHARP NAVIGATOR"
+                 : avg <= 4.5 ? "✅ SOLID RUN"
+                 : avg <= 6   ? "😅 SURVIVED"
+                 :              "🪦 BARELY MADE IT";
+
+    // Summary grid
+    const summary = document.getElementById("win-summary");
+    const stat = (label, value, color="#fff") =>
+        `<div style="color:rgba(255,255,255,0.4);font-size:9px;letter-spacing:1.5px;text-transform:uppercase">${label}</div>
+         <div style="font-family:var(--ft);font-size:20px;font-weight:700;color:${color}">${value}</div>`;
+    summary.innerHTML =
+        stat("Total Swings",    state.totalSwings,       "#fbbf24") +
+        stat("Final Stamina",   state.stamina,            state.stamina>8?"#22c55e":"#ef4444") +
+        stat("Avg Swings/Hole", avg.toFixed(1),           "#94a3b8") +
+        stat("Relics Collected",relics.length,            "#c084fc");
+
+    // Relic icons
+    const relicEl = document.getElementById("win-relics");
+    relicEl.innerHTML = relics.length === 0
+        ? `<span style="color:rgba(255,255,255,0.3);font-size:12px">None</span>`
+        : relics.map(r=>`<span title="${r.name}" style="font-size:22px">${r.icon}</span>`).join("");
+
+    document.getElementById("win-rating").textContent = rating;
+    showOverlay("overlay-win");
+}
+
+function fullReset() {
+    clearSave();
+    state.holeNum=1; state.checkpoint=1; state.stamina=START_STAMINA; state.totalSwings=0;
+    hand=[]; bonusHand=[]; startingHand=[]; relics=[];
+    document.getElementById("cp-label").textContent=1;
+    startHole();
+}
+document.getElementById("btn-restart").onclick = () => {
+    // Checkpoint restart: keep relics earned, reset stamina only
+    state.holeNum=state.checkpoint; state.stamina=START_STAMINA;
+    hand=[]; bonusHand=[]; startHole();
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  PHYSICS
+// ═══════════════════════════════════════════════════════════════
+
+function resolveWall(o) {
+    if (ball.x+BALL_R < o.x || ball.x-BALL_R > o.x+o.w ||
+        ball.y+BALL_R < o.y || ball.y-BALL_R > o.y+o.h) return;
+    const rest = state.activeEffect==="bouncy" ? 1.15 : 0.62;
+    const oL=(ball.x+BALL_R)-o.x, oR=(o.x+o.w)-(ball.x-BALL_R);
+    const oT=(ball.y+BALL_R)-o.y, oB=(o.y+o.h)-(ball.y-BALL_R);
+    if (Math.min(oL,oR) < Math.min(oT,oB)) {
+        ball.vx=-ball.vx*rest; ball.x+=ball.vx>0?oL:-oR;
+    } else {
+        ball.vy=-ball.vy*rest; ball.y+=ball.vy>0?oT:-oB;
+    }
+}
+
+function updatePhysics() {
+    if (holeSunk) return;
+    const fx = state.activeEffect;
+
+    // Magnet / curve card
+    if (fx==="magnet"||fx==="curve") {
+        const pull=fx==="magnet"?0.0012:0.0006, range=fx==="magnet"?180:250;
+        const d=Math.hypot(hole.x-ball.x, hole.y-ball.y);
+        if (d<range&&d>12){ball.vx+=(hole.x-ball.x)*pull; ball.vy+=(hole.y-ball.y)*pull;}
+    }
+
+    // Wind force (only when ball is moving meaningfully)
+    if (isBallMoving() && wind.strength > 0) {
+        const ws = getWindStrength(wind.strength);
+        ball.vx += Math.cos(wind.angle) * ws;
+        ball.vy += Math.sin(wind.angle) * ws;
+    }
+
+    ball.x+=ball.vx; ball.y+=ball.vy;
+    ball.vx*=ball.friction; ball.vy*=ball.friction;
+
+    if (fx==="sticky"&&Math.hypot(ball.vx,ball.vy)<1.2){ball.vx=0;ball.vy=0;}
+
+    // World boundary — always bounces, even ghost card
+    const damp=fx==="bouncy"?1.15:0.65;
+    if(ball.x<BALL_R)        {ball.x=BALL_R;        ball.vx= Math.abs(ball.vx)*damp;}
+    if(ball.x>WORLD_W-BALL_R){ball.x=WORLD_W-BALL_R;ball.vx=-Math.abs(ball.vx)*damp;}
+    if(ball.y<BALL_R)        {ball.y=BALL_R;        ball.vy= Math.abs(ball.vy)*damp;}
+    if(ball.y>WORLD_H-BALL_R){ball.y=WORLD_H-BALL_R;ball.vy=-Math.abs(ball.vy)*damp;}
+
+    // Wall collisions — ghost card passes through internal walls and barriers
+    if (fx !== "ghost") {
+        walls.forEach(resolveWall);
+    }
+
+    if (fx!=="ghost") {
+        sandHazards.forEach(h=>{
+            if(ball.x>h.x&&ball.x<h.x+h.w&&ball.y>h.y&&ball.y<h.y+h.h){ball.vx*=0.84;ball.vy*=0.84;}
+        });
+        waterHazards.forEach(h=>{
+            if(ball.x>h.x&&ball.x<h.x+h.w&&ball.y>h.y&&ball.y<h.y+h.h){
+                spawnParticles(ball.x,ball.y,"#3b82f6",14);
+                const staminaCost = hasRelic("iron_will") ? 0 : 1;
+                if (staminaCost > 0) spawnFloat("-1 Stamina",ball.x,ball.y,"#ef4444");
+                else spawnFloat("Iron Will!",ball.x,ball.y,"#60a5fa");
+                ball.x=120; ball.y=WORLD_H/2; ball.vx=0; ball.vy=0;
+                state.activeEffect=null; state.stamina -= staminaCost;
+                updateHUD(); if (staminaCost > 0) checkDeath();
+            }
+        });
+    }
+
+    // Stamina pickups
+    pickups.forEach(p => {
+        if (p.collected) return;
+        if (Math.hypot(ball.x-p.x, ball.y-p.y) < 18) {
+            p.collected = true;
+            state.stamina = Math.min(MAX_STAMINA, state.stamina + p.value);
+            spawnParticles(p.x, p.y, "#fbbf24", 12);
+            spawnFloat(`+${p.value} Stamina`, p.x, p.y, "#fbbf24");
+            updateHUD();
+        }
+    });
+
+    particles=particles.filter(p=>p.life>0);
+    particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vx*=0.94;p.vy*=0.94;p.life-=p.decay;});
+
+    // Hole-in (relic-adjusted radius)
+    const hr = getHoleR();
+    if (Math.hypot(ball.x-hole.x,ball.y-hole.y)<hr+2 && Math.hypot(ball.vx,ball.vy)<4) {
+        holeSunk=true; ball.vx=0; ball.vy=0; ball.x=hole.x; ball.y=hole.y;
+        spawnParticles(hole.x,hole.y,"#fbbf24",28);
+        const bonus = getHoleBonus();
+        state.stamina=Math.min(MAX_STAMINA, state.stamina + bonus);
+        updateHUD();
+        saveRun(); // persist after each hole
+        setTimeout(showHoleComplete, 700);
+        return;
+    }
+
+    // Auto-redeal when hand empty and ball stops
+    if (hand.length===0 && !isBallMoving() && state.stamina>0) {
+        redealMidHole();
+        spawnFloat("NEW CARDS", ball.x, ball.y-20, "#fbbf24");
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  PARTICLES & FLOATS
+// ═══════════════════════════════════════════════════════════════
+
+function spawnParticles(x,y,color,count=18) {
+    for(let i=0;i<count;i++){
+        const a=Math.random()*TAU, spd=1.5+Math.random()*4;
+        particles.push({x,y,color,vx:Math.cos(a)*spd,vy:Math.sin(a)*spd,life:1,decay:0.03+Math.random()*0.04,r:2+Math.random()*4});
+    }
+}
+function spawnFloat(text,x,y,color="#fbbf24") {
+    // Convert world → screen for float position
+    const sx=(x-cam.x)*cam.zoom, sy=(y-cam.y)*cam.zoom;
+    const el=document.createElement("div");
+    el.className="float-text";
+    el.style.cssText=`left:${sx-40}px;top:${sy-20}px;color:${color}`;
+    el.textContent=text;
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(),1300);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  DRAW
+// ═══════════════════════════════════════════════════════════════
+
+function buildGrassPattern() {
+    const sz=32, oc=document.createElement("canvas");
+    oc.width=oc.height=sz;
+    const ox=oc.getContext("2d");
+    ox.fillStyle="#14532d"; ox.fillRect(0,0,sz/2,sz/2); ox.fillRect(sz/2,sz/2,sz/2,sz/2);
+    ox.fillStyle="#166534"; ox.fillRect(sz/2,0,sz/2,sz/2); ox.fillRect(0,sz/2,sz/2,sz/2);
+    grassPattern=ctx.createPattern(oc,"repeat");
+}
+
+function drawScene() {
+    // World background (rough/out-of-bounds)
+    ctx.fillStyle = "#0d3b1e";
+    ctx.fillRect(0, 0, WORLD_W, WORLD_H);
+
+    // Fairway corridors — smooth rounded path
+    if (window._coursePts && window._coursePts.length > 1) {
+        const pts = window._coursePts;
+        const fw  = window._fairwayW || 180;
+        // Fairway fill
+        ctx.save();
+        ctx.strokeStyle = "#1a6b3a";
+        ctx.lineWidth   = fw;
+        ctx.lineCap     = "round";
+        ctx.lineJoin    = "round";
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x, pts[0].y);
+        for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+        ctx.stroke();
+        // Lighter centre stripe
+        ctx.strokeStyle = "#1e7a40";
+        ctx.lineWidth   = fw * 0.55;
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x, pts[0].y);
+        for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+        ctx.stroke();
+        ctx.restore();
+
+        // ── Corridor edge barriers — stroked directly from offset polylines ──
+        if (window._topEdge && window._topEdge.length > 1) {
+            [window._topEdge, window._bottomEdge].forEach(edge => {
+                // Dark shadow pass (slightly wider)
+                ctx.beginPath();
+                ctx.moveTo(edge[0].x, edge[0].y);
+                for (let i = 1; i < edge.length; i++) ctx.lineTo(edge[i].x, edge[i].y);
+                ctx.strokeStyle = "#2a1508";
+                ctx.lineWidth   = 20;
+                ctx.lineCap     = "butt";
+                ctx.lineJoin    = "round";
+                ctx.stroke();
+
+                // Wood plank fill
+                ctx.beginPath();
+                ctx.moveTo(edge[0].x, edge[0].y);
+                for (let i = 1; i < edge.length; i++) ctx.lineTo(edge[i].x, edge[i].y);
+                ctx.strokeStyle = "#6b4226";
+                ctx.lineWidth   = 14;
+                ctx.stroke();
+
+                // Highlight stripe along top face
+                ctx.beginPath();
+                ctx.moveTo(edge[0].x, edge[0].y);
+                for (let i = 1; i < edge.length; i++) ctx.lineTo(edge[i].x, edge[i].y);
+                ctx.strokeStyle = "rgba(255,190,100,0.22)";
+                ctx.lineWidth   = 4;
+                ctx.stroke();
+            });
+        }
+    }
+
+    // Hazards
+    ctx.fillStyle = "#e9c84a";
+    sandHazards.forEach(h => ctx.fillRect(h.x, h.y, h.w, h.h));
+    const t = Date.now() * 0.001;
+    waterHazards.forEach((h, i) => {
+        const phase = (Math.sin(t + i) + 1) / 2;
+        const g = ctx.createLinearGradient(h.x, h.y, h.x+h.w, h.y+h.h);
+        g.addColorStop(0,"#1d4ed8"); g.addColorStop(phase,"#3b82f6"); g.addColorStop(1,"#1d4ed8");
+        ctx.fillStyle = g; ctx.fillRect(h.x, h.y, h.w, h.h);
+    });
+
+    // In-fairway wood plank obstacles
+    walls.filter(o => o._plank).forEach(o => {
+        ctx.fillStyle   = "#5c3a1e"; ctx.fillRect(o.x, o.y, o.w, o.h);
+        ctx.fillStyle   = "#7a4e2a"; ctx.fillRect(o.x, o.y, o.w, 3);
+        ctx.fillStyle   = "rgba(0,0,0,0.3)"; ctx.fillRect(o.x, o.y+o.h-3, o.w, 3);
+        ctx.strokeStyle = "#3d2510"; ctx.lineWidth = 1;
+        ctx.strokeRect(o.x, o.y, o.w, o.h);
+    });
+
+    // World border walls
+    walls.filter(o => !o._corridor && !o._plank).forEach(o => {
+        ctx.fillStyle = "#065f46"; ctx.fillRect(o.x, o.y, o.w, o.h);
+        ctx.fillStyle = "#047857"; ctx.fillRect(o.x, o.y, o.w, 4);
+        ctx.fillStyle = "rgba(0,0,0,0.25)"; ctx.fillRect(o.x, o.y+o.h-4, o.w, 4);
+    });
+
+    // Tee marker
+    ctx.fillStyle   = "rgba(255,255,255,0.12)";
+    ctx.beginPath(); ctx.arc(120, WORLD_H/2, 20, 0, TAU); ctx.fill();
+    ctx.fillStyle   = "rgba(255,255,255,0.45)";
+    ctx.font        = "bold 12px sans-serif";
+    ctx.textAlign   = "center"; ctx.textBaseline = "middle";
+    ctx.fillText("TEE", 120, WORLD_H/2);
+
+    // Stamina pickups — golden star tokens
+    pickups.forEach(p => {
+        if (p.collected) return;
+        const t2 = Date.now() * 0.003;
+        const bob = Math.sin(t2 + p.x) * 3; // gentle float
+        const r = 14;
+        // Glow
+        ctx.save();
+        ctx.shadowColor = "#fbbf24";
+        ctx.shadowBlur  = 12;
+        ctx.fillStyle   = "#fbbf24";
+        ctx.beginPath(); ctx.arc(p.x, p.y + bob, r, 0, TAU); ctx.fill();
+        ctx.restore();
+        // Inner
+        ctx.fillStyle = "#fff8";
+        ctx.beginPath(); ctx.arc(p.x - 3, p.y + bob - 3, r * 0.35, 0, TAU); ctx.fill();
+        // Label
+        ctx.fillStyle = "#7c3f00";
+        ctx.font = "bold 9px sans-serif";
+        ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        ctx.fillText(`+${p.value}⚡`, p.x, p.y + bob);
+    });
+
+    // Hole cup + flag (using relic-adjusted radius for visual)
+    const hr = getHoleR();
+    ctx.fillStyle = "rgba(0,0,0,0.5)";
+    ctx.beginPath(); ctx.ellipse(hole.x, hole.y+4, hr+4, hr, 0,0,TAU); ctx.fill();
+    ctx.fillStyle = "#000";
+    ctx.beginPath(); ctx.arc(hole.x, hole.y, hr, 0, TAU); ctx.fill();
+    ctx.strokeStyle = "rgba(255,255,255,0.1)"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(hole.x, hole.y, hr+1, 0, TAU); ctx.stroke();
+    const fx = hole.x+3, fy = hole.y-hr;
+    ctx.strokeStyle = "#9ca3af"; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(fx,fy); ctx.lineTo(fx,fy-22); ctx.stroke();
+    ctx.fillStyle = "#ef4444";
+    ctx.beginPath(); ctx.moveTo(fx,fy-22); ctx.lineTo(fx+14,fy-16); ctx.lineTo(fx,fy-10); ctx.fill();
+
+    // Particles
+    particles.forEach(p => {
+        ctx.globalAlpha = Math.max(0, p.life); ctx.fillStyle = p.color;
+        ctx.beginPath(); ctx.arc(p.x, p.y, Math.max(0.1, p.r*p.life), 0, TAU); ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+
+    // Ball
+    ctx.fillStyle = "rgba(0,0,0,0.3)";
+    ctx.beginPath(); ctx.ellipse(ball.x+3, ball.y+4, BALL_R, BALL_R*0.6, 0,0,TAU); ctx.fill();
+    const bg = ctx.createRadialGradient(ball.x-2, ball.y-2, 1, ball.x, ball.y, BALL_R);
+    bg.addColorStop(0,"#fff"); bg.addColorStop(1,"#cbd5e1");
+    ctx.fillStyle = bg;
+    ctx.beginPath(); ctx.arc(ball.x, ball.y, BALL_R, 0, TAU); ctx.fill();
+
+    drawAimLine();
+}
+
+function drawAimLine() {
+    if (!drag.active || drag.mode === "pan" || selectedIdx===-1 || cam.mode==="overview") return;
+    const raw=dragVec(), clamped=clampedDragVec();
+    const power=Math.min(raw.dist,MAX_DRAG)/MAX_DRAG;
+    const cancel=raw.dist<CANCEL_DIST;
+    // Convert anchor screen → world
+    const aw=screenToWorld(drag.anchorX, drag.anchorY);
+    ctx.save();
+    if (cancel) {
+        ctx.strokeStyle="rgba(239,68,68,0.7)"; ctx.lineWidth=2; ctx.setLineDash([4,5]);
+        ctx.beginPath(); ctx.arc(aw.x,aw.y,CANCEL_DIST+4,0,TAU); ctx.stroke(); ctx.setLineDash([]);
+        ctx.fillStyle="rgba(239,68,68,0.4)";
+        ctx.beginPath(); ctx.arc(aw.x,aw.y,4,0,TAU); ctx.fill();
+        ctx.restore(); return;
+    }
+    const {dx,dy}=clamped;
+    const alpha=0.35+power*0.55;
+    ctx.strokeStyle=`rgba(251,191,36,${alpha})`; ctx.lineWidth=2.5; ctx.setLineDash([6,8]);
+    ctx.beginPath(); ctx.moveTo(ball.x,ball.y); ctx.lineTo(ball.x+dx,ball.y+dy); ctx.stroke(); ctx.setLineDash([]);
+    ctx.strokeStyle=`rgba(251,191,36,${0.15+power*0.2})`; ctx.lineWidth=5;
+    ctx.beginPath(); ctx.arc(ball.x,ball.y,28+power*32,0,TAU); ctx.stroke();
+    if (raw.dist>20) {
+        const a=Math.atan2(dy,dx), s=9;
+        ctx.fillStyle=`rgba(251,191,36,${0.6+power*0.35})`;
+        ctx.beginPath();
+        ctx.moveTo(ball.x+Math.cos(a)*s,ball.y+Math.sin(a)*s);
+        ctx.lineTo(ball.x+Math.cos(a+2.4)*s,ball.y+Math.sin(a+2.4)*s);
+        ctx.lineTo(ball.x+Math.cos(a-2.4)*s,ball.y+Math.sin(a-2.4)*s);
+        ctx.fill();
+    }
+    ctx.strokeStyle="rgba(251,191,36,0.18)"; ctx.lineWidth=1; ctx.setLineDash([3,8]);
+    ctx.beginPath(); ctx.moveTo(aw.x,aw.y); ctx.lineTo(ball.x,ball.y); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle="rgba(251,191,36,0.45)";
+    ctx.beginPath(); ctx.arc(aw.x,aw.y,4,0,TAU); ctx.fill();
+    ctx.restore();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  MAIN LOOP
+// ═══════════════════════════════════════════════════════════════
+
+function loop() {
+    ctx.clearRect(0,0,W,H);
+
+    camUpdate();
+    if (cam.mode!=="overview") updatePhysics();
+
+    // Apply camera transform
+    ctx.save();
+    ctx.scale(cam.zoom, cam.zoom);
+    ctx.translate(-cam.x, -cam.y);
+    drawScene();
+    ctx.restore();
+
+    // Screen-space overlays
+    drawHoleIndicator();
+
+    // Pan mode cursor hint — show grab icon near cursor while panning
+    if (drag.active && drag.mode === "pan") {
+        ctx.save();
+        ctx.fillStyle = "rgba(255,255,255,0.15)";
+        ctx.strokeStyle = "rgba(255,255,255,0.4)";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.arc(drag.curX, drag.curY, 16, 0, TAU); ctx.fill(); ctx.stroke();
+        ctx.restore();
+    }
+
+    // Keep hint fresh while ball is rolling
+    if (isBallMoving()) updateHint();
+
+    requestAnimationFrame(loop);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════════════
+
+function init() {
+    resize();
+    window.addEventListener("resize", () => { resize(); buildGrassPattern(); });
+    // Save on tab close / refresh
+    window.addEventListener("beforeunload", saveRun);
+    buildGrassPattern();
+
+    // Attempt to resume a saved run
+    if (loadRun()) {
+        // Restore checkpoint label
+        document.getElementById("cp-label").textContent = state.checkpoint;
+        startingHand = [...hand];
+        updateRelicBar();
+        // Show resume banner briefly then start the hole
+        showResumeBanner();
+    } else {
+        startHole();
+    }
+
+    requestAnimationFrame(loop);
+}
+
+function showResumeBanner() {
+    // Small non-blocking toast asking if player wants to resume
+    const toast = document.createElement("div");
+    toast.id = "resume-toast";
+    toast.style.cssText = `
+        position:absolute;top:80px;left:50%;transform:translateX(-50%);
+        background:rgba(10,15,30,0.95);border:1px solid rgba(251,191,36,0.4);
+        border-radius:12px;padding:14px 20px;z-index:200;text-align:center;
+        font-family:var(--ft);backdrop-filter:blur(8px);min-width:260px;
+        animation:fade-in 0.3s ease-out;
+    `;
+    toast.innerHTML = `
+        <div style="font-size:13px;color:rgba(255,255,255,0.6);margin-bottom:10px">
+            Save found — Hole ${state.holeNum} · ${state.stamina} Stamina
+        </div>
+        <div style="display:flex;gap:8px;justify-content:center">
+            <button onclick="resumeRun()" style="
+                font-family:var(--ft);font-size:12px;font-weight:700;
+                background:var(--safe);border:none;color:#fff;
+                padding:7px 16px;border-radius:7px;cursor:pointer;
+            ">▶ RESUME</button>
+            <button onclick="newRunFromToast()" style="
+                font-family:var(--ft);font-size:12px;font-weight:700;
+                background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);
+                color:rgba(255,255,255,0.6);padding:7px 16px;border-radius:7px;cursor:pointer;
+            ">NEW RUN</button>
+        </div>
+    `;
+    document.body.appendChild(toast);
+}
+
+function resumeRun() {
+    document.getElementById("resume-toast")?.remove();
+    startHole();
+}
+
+function newRunFromToast() {
+    document.getElementById("resume-toast")?.remove();
+    clearSave();
+    state.holeNum=1; state.checkpoint=1; state.stamina=START_STAMINA; state.totalSwings=0;
+    hand=[]; bonusHand=[]; startingHand=[]; relics=[];
+    document.getElementById("cp-label").textContent=1;
+    updateRelicBar();
+    startHole();
+}
+
+init();
+</script>
+</body>
+</html>
