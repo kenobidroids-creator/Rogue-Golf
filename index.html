@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -24,12 +23,12 @@
 /* ── RESET ──────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 body {
-background: var(–bg);
-color: #fff;
-font-family: var(–fb);
-overflow: hidden;
-touch-action: none;
-user-select: none;
+    background: var(--bg);
+    color: #fff;
+    font-family: var(--fb);
+    overflow: hidden;
+    touch-action: none;
+    user-select: none;
 }
 canvas { display: block; cursor: default; }
 canvas.pan-cursor  { cursor: grab; }
@@ -37,172 +36,197 @@ canvas.grab-active { cursor: grabbing; }
 
 /* ── PROGRESS BAR ───────────────────────────────────────────── */
 #progress-bar {
-position: absolute; top: 0; left: 0; right: 0;
-height: 3px; background: rgba(255,255,255,0.08); z-index: 20;
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 3px; background: rgba(255,255,255,0.08); z-index: 20;
 }
 #progress-fill {
-height: 100%;
-background: linear-gradient(90deg, var(–safe), var(–accent));
-transition: width 0.5s cubic-bezier(.4,0,.2,1);
+    height: 100%;
+    background: linear-gradient(90deg, var(--safe), var(--accent));
+    transition: width 0.5s cubic-bezier(.4,0,.2,1);
 }
 
 /* ── HUD ────────────────────────────────────────────────────── */
 #hud {
-position: absolute; top: 0; left: 0; right: 0;
-padding: 14px 18px;
-display: flex; justify-content: space-between; align-items: flex-start;
-pointer-events: none; z-index: 10;
+    position: absolute; top: 0; left: 0; right: 0;
+    padding: 14px 18px;
+    display: flex; justify-content: space-between; align-items: flex-start;
+    pointer-events: none; z-index: 10;
 }
 .hud-block {
-background: rgba(10,15,30,0.85);
-border: 1px solid var(–border);
-border-radius: 10px; padding: 8px 14px;
-backdrop-filter: blur(6px);
+    background: rgba(10,15,30,0.85);
+    border: 1px solid var(--border);
+    border-radius: 10px; padding: 8px 14px;
+    backdrop-filter: blur(6px);
 }
 .hud-label {
-font-size: 9px; font-weight: 700; letter-spacing: 2px;
-color: rgba(255,255,255,0.4); text-transform: uppercase; margin-bottom: 4px;
+    font-size: 9px; font-weight: 700; letter-spacing: 2px;
+    color: rgba(255,255,255,0.4); text-transform: uppercase; margin-bottom: 4px;
 }
-.hud-value { font-family: var(–ft); font-size: 20px; line-height: 1; color: var(–accent); }
+.hud-value { font-family: var(--ft); font-size: 20px; line-height: 1; color: var(--accent); }
 
 /* Stamina pips */
 #pips { display: flex; gap: 4px; flex-wrap: wrap; max-width: 180px; }
 .pip {
-width: 10px; height: 10px; border-radius: 2px;
-background: var(–accent); border: 1px solid rgba(0,0,0,0.3);
-transition: background 0.2s, transform 0.15s;
+    width: 10px; height: 10px; border-radius: 2px;
+    background: var(--accent); border: 1px solid rgba(0,0,0,0.3);
+    transition: background 0.2s, transform 0.15s;
 }
 .pip.empty  { background: rgba(255,255,255,0.12); }
-.pip.danger { background: var(–danger); animation: pip-pulse 0.8s ease-in-out infinite alternate; }
+.pip.danger { background: var(--danger); animation: pip-pulse 0.8s ease-in-out infinite alternate; }
 @keyframes pip-pulse { to { transform: scale(1.3); } }
 
 /* ── CARD HAND ──────────────────────────────────────────────── */
 #hand-wrap {
-position: absolute; bottom: 0; left: 0; right: 0;
-display: flex; flex-direction: column; align-items: center;
-padding-bottom: 18px; z-index: 10; pointer-events: none;
+    position: absolute; bottom: 0; left: 0; right: 0;
+    display: flex; flex-direction: column; align-items: center;
+    padding-bottom: 18px; z-index: 10; pointer-events: none;
 }
 #mobile-tip {
-font-size: 10px; color: rgba(255,255,255,0.45);
-letter-spacing: 1px; pointer-events: none;
-transition: opacity 0.4s; margin-bottom: 4px;
+    font-size: 10px; color: rgba(255,255,255,0.45);
+    letter-spacing: 1px; pointer-events: none;
+    transition: opacity 0.4s; margin-bottom: 4px;
 }
 #swing-hint {
-font-size: 11px; font-weight: 700; letter-spacing: 2px;
-color: var(–accent); text-transform: uppercase; margin-bottom: 10px;
-text-shadow: 0 0 12px rgba(251,191,36,0.6);
-transition: opacity 0.2s, color 0.2s;
+    font-size: 11px; font-weight: 700; letter-spacing: 2px;
+    color: var(--accent); text-transform: uppercase; margin-bottom: 10px;
+    text-shadow: 0 0 12px rgba(251,191,36,0.6);
+    transition: opacity 0.25s ease, color 0.25s ease;
 }
 #hand { display: flex; gap: 10px; pointer-events: auto; }
 
 /* Cards */
 .card {
-width: 82px; height: 110px;
-background: linear-gradient(160deg, #1a2235, #0d1320);
-border: 1.5px solid rgba(255,255,255,0.12);
-border-radius: 10px; cursor: pointer;
-display: flex; flex-direction: column; align-items: center;
-justify-content: center; text-align: center;
-padding: 6px 5px; position: relative;
-transition: transform 0.18s cubic-bezier(.2,.8,.3,1.2),
-box-shadow 0.15s, border-color 0.15s;
-animation: card-deal 0.3s ease-out backwards;
-touch-action: none;
+    width: 82px; height: 110px;
+    background: linear-gradient(160deg, #1a2235, #0d1320);
+    border: 1.5px solid rgba(255,255,255,0.12);
+    border-radius: 10px; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; text-align: center;
+    padding: 6px 5px; position: relative;
+    transition: transform 0.25s cubic-bezier(.175,.885,.32,1.275),
+                box-shadow 0.2s ease, border-color 0.2s ease, opacity 0.15s;
+    animation: card-deal 0.35s cubic-bezier(.175,.885,.32,1.275) backwards;
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+    will-change: transform;
 }
 @media (hover: hover) {
-.card:not(.selected):not(.disabled):hover {
-transform: translateY(-14px) scale(1.04);
-border-color: rgba(255,255,255,0.3);
-box-shadow: 0 10px 28px rgba(0,0,0,0.5);
-}
+    .card:not(.selected):not(.disabled):hover {
+        transform: translateY(-14px) scale(1.04);
+        border-color: rgba(255,255,255,0.3);
+        box-shadow: 0 10px 28px rgba(0,0,0,0.5);
+    }
 }
 .card.selected {
-border-color: var(–accent);
-background: linear-gradient(160deg, #221a40, #0d1320);
-transform: translateY(-20px) scale(1.05);
-box-shadow: 0 0 28px rgba(251,191,36,0.5), 0 10px 30px rgba(0,0,0,0.6);
+    border-color: var(--accent);
+    background: linear-gradient(160deg, #221a40, #0d1320);
+    transform: translateY(-20px) scale(1.05);
+    box-shadow: 0 0 28px rgba(251,191,36,0.5), 0 10px 30px rgba(0,0,0,0.6);
 }
-/* On touch devices, selected card lifts higher and grows for easy reading */
+/* Armed = swipe threshold reached, ready to fire */
+.card.armed {
+    border-color: var(--safe) !important;
+    box-shadow: 0 0 32px rgba(34,197,94,0.6), 0 10px 30px rgba(0,0,0,0.6) !important;
+}
+/* Touch devices: wider cards, more lift */
 @media (hover: none) {
-.card.selected {
-transform: translateY(-28px) scale(1.18);
-box-shadow: 0 0 32px rgba(251,191,36,0.6), 0 14px 36px rgba(0,0,0,0.7);
-z-index: 20;
-}
+    #hand-wrap { overflow: visible; }
+    #hand { overflow: visible; gap: 8px; }
+    .card {
+        width: 96px; height: 124px;
+        font-size: 1.05em;
+    }
+    .card.selected {
+        transform: translateY(-26px) scale(1.14);
+        box-shadow: 0 0 30px rgba(251,191,36,0.6), 0 14px 36px rgba(0,0,0,0.7);
+        z-index: 20;
+    }
 }
 .card.disabled { opacity: 0.32; pointer-events: none; filter: grayscale(0.4); }
 @keyframes card-deal {
-from { transform: translateY(70px) rotate(4deg); opacity: 0; }
-to   { transform: translateY(0) rotate(0); opacity: 1; }
+    from { transform: translateY(80px) scale(0.85); opacity: 0; }
+    to   { transform: translateY(0)    scale(1);    opacity: 1; }
+}
+/* Card flies upward when swiped to play */
+@keyframes card-flyoff {
+    0%   { opacity: 1; }
+    100% { transform: translateY(-280px) scale(0.6) rotate(-5deg); opacity: 0; }
+}
+.card.flying {
+    animation: card-flyoff 0.28s cubic-bezier(.4,0,1,1) forwards;
+    pointer-events: none;
 }
 .card-badge { position: absolute; top: -8px; right: -8px;
-background: var(–danger); color: #fff; border-radius: 50%;
-width: 22px; height: 22px; font-size: 11px; font-weight: 700;
-display: flex; align-items: center; justify-content: center;
-border: 2px solid #0a0f1e; box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    background: var(--danger); color: #fff; border-radius: 50%;
+    width: 22px; height: 22px; font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    border: 2px solid #0a0f1e; box-shadow: 0 2px 6px rgba(0,0,0,0.4);
 }
-.card-badge.free { background: var(–safe); font-size: 8px; letter-spacing: 0.3px; }
+.card-badge.free { background: var(--safe); font-size: 8px; letter-spacing: 0.3px; }
 .card-icon  { font-size: 20px; margin-bottom: 3px; line-height: 1; }
-.card-name  { font-family: var(–ft); font-size: 12px; font-weight: 700; line-height: 1.2; margin-bottom: 3px; }
+.card-name  { font-family: var(--ft); font-size: 12px; font-weight: 700; line-height: 1.2; margin-bottom: 3px; }
 .card-stats { font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.80); margin-bottom: 3px; }
 .card-desc  { font-size: 9.5px; color: rgba(255,255,255,0.70); font-style: italic; line-height: 1.3; }
 
 /* Bonus card pick state — clear green glow, no ambiguity */
 .bonus-card.picked {
-border-color: var(–safe) !important;
-box-shadow: 0 0 20px rgba(34,197,94,0.5);
-pointer-events: none;
+    border-color: var(--safe) !important;
+    box-shadow: 0 0 20px rgba(34,197,94,0.5);
+    pointer-events: none;
 }
 .bonus-card.picked::after {
-content: “✓ ADDED”;
-position: absolute; bottom: 6px; left: 0; right: 0;
-font-family: var(–ft); font-size: 9px; font-weight: 700;
-color: var(–safe); letter-spacing: 1px; text-align: center;
+    content: "✓ ADDED";
+    position: absolute; bottom: 6px; left: 0; right: 0;
+    font-family: var(--ft); font-size: 9px; font-weight: 700;
+    color: var(--safe); letter-spacing: 1px; text-align: center;
 }
 
 /* ── DECK VIEWER ─────────────────────────────────────────────── */
 #overlay-deck {
-position: absolute; inset: 0;
-background: rgba(2,6,23,0.96); backdrop-filter: blur(10px);
-display: none; flex-direction: column; align-items: center;
-z-index: 60; padding: 30px 20px 20px;
-animation: fade-in 0.2s ease-out;
-overflow-y: auto;
+    position: absolute; inset: 0;
+    background: rgba(2,6,23,0.96); backdrop-filter: blur(10px);
+    display: none; flex-direction: column; align-items: center;
+    z-index: 60; padding: 30px 20px 20px;
+    animation: fade-in 0.2s ease-out;
+    overflow-y: auto;
 }
 #overlay-deck.show { display: flex; }
 #deck-title {
-font-family: var(–ft); font-size: 28px; font-weight: 700;
-color: var(–accent); margin-bottom: 4px; letter-spacing: 2px;
+    font-family: var(--ft); font-size: 28px; font-weight: 700;
+    color: var(--accent); margin-bottom: 4px; letter-spacing: 2px;
 }
 #deck-subtitle { font-size: 13px; color: rgba(255,255,255,0.45); margin-bottom: 20px; }
 #deck-sections { width: 100%; max-width: 620px; }
 .deck-section-title {
-font-family: var(–ft); font-size: 11px; font-weight: 700;
-letter-spacing: 2px; color: rgba(255,255,255,0.35);
-text-transform: uppercase; margin-bottom: 10px; margin-top: 18px;
+    font-family: var(--ft); font-size: 11px; font-weight: 700;
+    letter-spacing: 2px; color: rgba(255,255,255,0.35);
+    text-transform: uppercase; margin-bottom: 10px; margin-top: 18px;
 }
 #deck-cards { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
 .btn.ghost {
-background: transparent; border-color: rgba(255,255,255,0.2);
-color: rgba(255,255,255,0.6); font-size: 12px; padding: 8px 18px;
+    background: transparent; border-color: rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.6); font-size: 12px; padding: 8px 18px;
 }
 
 /* ── RELIC CARD ─────────────────────────────────────────────── */
 .relic-card {
-width: 110px; min-height: 130px;
-background: linear-gradient(160deg, #1a1040, #0d0d20);
-border: 1.5px solid rgba(192,132,252,0.25);
-border-radius: 10px; cursor: pointer; padding: 10px 8px;
-display: flex; flex-direction: column; align-items: center;
-text-align: center; position: relative;
-transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+    width: 110px; min-height: 130px;
+    background: linear-gradient(160deg, #1a1040, #0d0d20);
+    border: 1.5px solid rgba(192,132,252,0.25);
+    border-radius: 10px; cursor: pointer; padding: 10px 8px;
+    display: flex; flex-direction: column; align-items: center;
+    text-align: center; position: relative;
+    transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
 }
 .relic-card:hover  { border-color: #c084fc; transform: translateY(-6px); box-shadow: 0 0 18px rgba(192,132,252,0.3); }
-.relic-card.picked { border-color: var(–safe); box-shadow: 0 0 18px rgba(34,197,94,0.4); pointer-events:none; }
-.relic-card.picked::after { content:“✓ TAKEN”; position:absolute;bottom:6px;left:0;right:0;font-family:var(–ft);font-size:9px;font-weight:700;color:var(–safe);letter-spacing:1px; }
+.relic-card.picked {
+    border-color: var(--safe) !important;
+    box-shadow: 0 0 20px rgba(34,197,94,0.5);
+}
 .relic-card.cursed { border-color: rgba(249,115,22,0.4); }
 .relic-icon   { font-size:28px; margin-bottom:6px; }
-.relic-name   { font-family:var(–ft); font-size:11px; font-weight:700; margin-bottom:4px; }
+.relic-name   { font-family:var(--ft); font-size:11px; font-weight:700; margin-bottom:4px; }
 .relic-desc   { font-size:8.5px; color:rgba(255,255,255,0.6); line-height:1.35; }
 .relic-rarity { position:absolute;top:-7px;left:8px; font-size:8px;font-weight:700;letter-spacing:1px;padding:2px 6px;border-radius:6px; }
 .rarity-common   { background:#374151;color:#9ca3af; }
@@ -211,81 +235,86 @@ transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
 
 /* HUD relic pip */
 .relic-pip {
-width:28px;height:28px;border-radius:6px;
-background:rgba(10,15,30,0.85); border:1px solid rgba(192,132,252,0.3);
-display:flex;align-items:center;justify-content:center;
-font-size:15px; cursor:pointer; backdrop-filter:blur(4px);
-transition:border-color 0.15s;
+    width:28px;height:28px;border-radius:6px;
+    background:rgba(10,15,30,0.85); border:1px solid rgba(192,132,252,0.3);
+    display:flex;align-items:center;justify-content:center;
+    font-size:15px; cursor:pointer; backdrop-filter:blur(4px);
+    transition:border-color 0.15s;
 }
 .relic-pip:hover { border-color:#c084fc; }
 
 /* Tab button active */
 .btn.tab-active { background: #1a1040; border-color:#c084fc; color:#c084fc; }
 #card-preview {
-position: absolute; bottom: 160px; left: 50%;
-transform: translateX(-50%) scale(0.85); transform-origin: bottom center;
-width: 160px;
-background: linear-gradient(160deg, #1e2d45, #0d1320);
-border: 2px solid var(–accent); border-radius: 14px;
-padding: 16px 14px 14px; text-align: center;
-pointer-events: none; z-index: 40; opacity: 0;
-transition: opacity 0.15s, transform 0.18s cubic-bezier(.2,.8,.3,1.2);
-box-shadow: 0 0 30px rgba(251,191,36,0.25), 0 12px 40px rgba(0,0,0,0.7);
+    position: absolute; bottom: 160px; left: 50%;
+    transform: translateX(-50%) scale(0.85); transform-origin: bottom center;
+    width: 160px;
+    background: linear-gradient(160deg, #1e2d45, #0d1320);
+    border: 2px solid var(--accent); border-radius: 14px;
+    padding: 16px 14px 14px; text-align: center;
+    pointer-events: none; z-index: 40; opacity: 0;
+    transition: opacity 0.15s, transform 0.18s cubic-bezier(.2,.8,.3,1.2);
+    box-shadow: 0 0 30px rgba(251,191,36,0.25), 0 12px 40px rgba(0,0,0,0.7);
 }
 #card-preview.visible { opacity: 1; transform: translateX(-50%) scale(1); }
 .pv-icon  { font-size: 40px; margin-bottom: 8px; }
-.pv-name  { font-family: var(–ft); font-size: 14px; margin-bottom: 6px; }
+.pv-name  { font-family: var(--ft); font-size: 14px; margin-bottom: 6px; }
 .pv-stats { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.8); margin-bottom: 8px; }
 .pv-desc  { font-size: 11px; color: rgba(255,255,255,0.7); line-height: 1.4; margin-bottom: 10px; }
 .pv-cost  {
-display: inline-block; background: var(–danger); color: #fff;
-font-weight: 700; font-size: 11px; padding: 3px 10px; border-radius: 20px;
+    display: inline-block; background: var(--danger); color: #fff;
+    font-weight: 700; font-size: 11px; padding: 3px 10px; border-radius: 20px;
 }
-.pv-cost.free { background: var(–safe); }
+.pv-cost.free { background: var(--safe); }
 
 /* ── OVERLAYS ───────────────────────────────────────────────── */
 .overlay {
-position: absolute; inset: 0;
-background: rgba(2,6,23,0.92); backdrop-filter: blur(8px);
-display: none; flex-direction: column; align-items: center; justify-content: center;
-z-index: 50; animation: fade-in 0.3s ease-out;
+    position: absolute; inset: 0;
+    background: rgba(2,6,23,0.92); backdrop-filter: blur(8px);
+    display: none; flex-direction: column; align-items: center; justify-content: center;
+    z-index: 50; animation: fade-in 0.3s ease-out;
 }
 .overlay.show { display: flex; }
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
 
 .ov-title {
-font-family: var(–ft); font-size: 52px; font-weight: 700;
-letter-spacing: 2px; margin-bottom: 6px; line-height: 1;
+    font-family: var(--ft); font-size: 52px; font-weight: 700;
+    letter-spacing: 2px; margin-bottom: 6px; line-height: 1;
 }
 .ov-sub { font-size: 15px; color: rgba(255,255,255,0.55); margin-bottom: 28px; letter-spacing: 1px; }
 #stars-row  { font-size: 28px; margin-bottom: 14px; letter-spacing: 4px; }
 #bonus-cards { display: flex; gap: 14px; margin-bottom: 24px; }
 .bonus-card { cursor: pointer; border: 2px solid rgba(255,255,255,0.15); transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s; }
-.bonus-card:hover { border-color: var(–accent); transform: translateY(-6px); }
+.bonus-card:hover { border-color: var(--accent); transform: translateY(-6px); }
+/* Selected state — toggleable, not locked */
+.bonus-card.picked {
+    border-color: var(--safe);
+    box-shadow: 0 0 18px rgba(34,197,94,0.45);
+    transform: translateY(-6px);
+}
 
 .btn {
-font-family: var(–ft); font-size: 15px; font-weight: 700; letter-spacing: 2px;
-background: var(–safe); border: 2px solid rgba(255,255,255,0.15);
-padding: 13px 32px; color: #fff; border-radius: 8px; cursor: pointer;
-transition: background 0.15s, transform 0.1s;
+    font-family: var(--ft); font-size: 15px; font-weight: 700; letter-spacing: 2px;
+    background: var(--safe); border: 2px solid rgba(255,255,255,0.15);
+    padding: 13px 32px; color: #fff; border-radius: 8px; cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
 }
 .btn:hover        { background: #16a34a; transform: scale(1.03); }
-.btn.danger       { background: var(–danger); }
+.btn.danger       { background: var(--danger); }
 .btn.danger:hover { background: #dc2626; }
-.btn.small        { font-size: 12px; padding: 9px 20px; background: var(–ui2); margin-top: 10px; }
+.btn.small        { font-size: 12px; padding: 9px 20px; background: var(--ui2); margin-top: 10px; }
 
 /* Floating text */
 .float-text {
-position: absolute; font-family: var(–ft); font-size: 20px;
-pointer-events: none; z-index: 30;
-animation: float-up 1.2s ease-out forwards;
+    position: absolute; font-family: var(--ft); font-size: 20px;
+    pointer-events: none; z-index: 30;
+    animation: float-up 1.2s ease-out forwards;
 }
 @keyframes float-up {
-from { transform: translateY(0);    opacity: 1; }
-to   { transform: translateY(-60px); opacity: 0; }
+    from { transform: translateY(0);    opacity: 1; }
+    to   { transform: translateY(-60px); opacity: 0; }
 }
 </style>
-
 </head>
 <body>
 
@@ -355,7 +384,6 @@ to   { transform: translateY(-60px); opacity: 0; }
 </div>
 
 <!-- Relic detail overlay -->
-
 <div class="overlay" id="overlay-relics">
     <div class="ov-title" style="color:#c084fc;font-size:32px">RELICS</div>
     <div id="relic-list" style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;max-width:600px;margin:16px 0"></div>
@@ -363,7 +391,6 @@ to   { transform: translateY(-60px); opacity: 0; }
 </div>
 
 <!-- Deck viewer — slides over hole complete -->
-
 <div id="overlay-deck">
     <div id="deck-title">YOUR DECK</div>
     <div id="deck-subtitle"></div>
@@ -759,12 +786,13 @@ function onPointerUp(sx, sy) {
 
     state.stamina -= actualCost;
     state.swingsThisHole++; state.totalSwings++;
-    windFrames = 90; // wind active for ~1.5s after each shot
+    windFrames = 90;
     hand.splice(selectedIdx, 1);
     selectedIdx = -1;
     cam.panning = false;
-    // Re-engage ball-follow when shot fires so camera tracks the ball in flight
+    // Immediately re-centre camera on ball and reset pan state
     camTargetFollow();
+    cam.x = cam.tx; cam.y = cam.ty; // snap, don't lerp
     renderHand(); updateHUD(); updateHint(); checkDeath();
 }
 
@@ -926,16 +954,16 @@ function generateHole() {
         const ox     = a.x + dx2*t + px2*spread;
         const oy     = a.y + dy2*t + py2*spread;
 
-        if (Math.hypot(ox - ball.x, oy - ball.y) < 160) continue;
-        if (Math.hypot(ox - hole.x, oy - hole.y) < 140) continue;
+        if (Math.hypot(ox - ball.x, oy - ball.y) < 200) continue;
+        if (Math.hypot(ox - hole.x, oy - hole.y) < 180) continue;
 
         const roll = Math.random();
         if (roll < 0.45) {
-            // Wood plank barrier
-            const pw = 18, ph = 60 + Math.random() * 60;
+            // Wood plank barrier — kept thin so the ball can squeeze past
+            const pw = 14, ph = 40 + Math.random() * 35; // narrower and shorter
             walls.push({ x: ox - pw/2, y: oy - ph/2, w: pw, h: ph, _plank: true });
         } else {
-            sandHazards.push({ x: ox-55, y: oy-40, w: 110+Math.random()*40, h: 70+Math.random()*30 });
+            sandHazards.push({ x: ox-45, y: oy-30, w: 90+Math.random()*30, h: 55+Math.random()*20 });
         }
         placed++;
     }
@@ -982,8 +1010,11 @@ function hidePreview() { previewEl.classList.remove("visible"); }
 
 function selectCard(i) {
     if (isBallMoving() || !hand[i] || state.stamina < hand[i].cost) return;
-    selectedIdx = selectedIdx === i ? -1 : i;
-    renderHand(); updateHint();
+    selectedIdx = (selectedIdx === i) ? -1 : i;
+    document.querySelectorAll("#hand .card").forEach((el, idx) => {
+        el.classList.toggle("selected", idx === selectedIdx);
+    });
+    updateHint();
 }
 
 function cardHTML(card) {
@@ -1004,51 +1035,95 @@ function renderHand() {
         el.className = "card"
             + (i === selectedIdx         ? " selected" : "")
             + (state.stamina < card.cost ? " disabled" : "");
-        el.style.animationDelay = `${i*0.06}s`;
+        el.style.animationDelay = `${i * 0.06}s`;
         el.innerHTML = cardHTML(card);
 
-        // ── Desktop: hover preview, click to select/deselect ──────
-        el.addEventListener("mouseenter", () => { if (!el.classList.contains("disabled")) showPreview(card, el); });
-        el.addEventListener("mouseleave", hidePreview);
+        // Desktop only: hover shows preview popup. Touch devices skip this entirely —
+        // the raised selected card is the preview on mobile.
+        const isTouch = window.matchMedia("(hover: none)").matches;
+        if (!isTouch) {
+            el.addEventListener("mouseenter", () => { if (!el.classList.contains("disabled")) showPreview(card, el); });
+            el.addEventListener("mouseleave", hidePreview);
+        }
         el.addEventListener("click", () => { hidePreview(); selectCard(i); });
 
-        // ── Mobile touch UX ───────────────────────────────────────
-        // • Tap       → select card (raises it) or deselect if already selected
-        // • Swipe UP  → play the card (locks in, fires when player drags on canvas)
-        //   (swipe up only works if this card is already selected)
-        // No hold-to-preview on mobile anymore — the raised selected state IS the preview
-        let touchStartY = 0;
-        let touchMoved  = false;
+        // Mobile touch — two phases:
+        // Phase 1 (not selected): tap → select → card lifts via CSS spring
+        // Phase 2 (selected): swipe up → card tracks finger → ≥50px = armed (green border)
+        //                     release armed → fly-off, selectedIdx stays for canvas drag
+        //                     release not-armed / tap → spring back / deselect
+        let tY0 = 0, didMove = false, swipeArmed = false;
+
+        function resetCardStyle() {
+            el.style.transition = "";
+            el.style.transform  = "";
+            el.classList.remove("armed");
+        }
 
         el.addEventListener("touchstart", e => {
-            touchStartY = e.touches[0].clientY;
-            touchMoved  = false;
-        }, { passive: true });
+            e.stopPropagation();
+            tY0 = e.touches[0].clientY;
+            didMove   = false;
+            swipeArmed = false;
+            if (i === selectedIdx) {
+                el.style.transition = "none"; // take manual control
+            } else {
+                resetCardStyle(); // clean up any leftover inline styles from other card
+            }
+        }, { passive: false });
 
         el.addEventListener("touchmove", e => {
-            if (Math.abs(e.touches[0].clientY - touchStartY) > 8) touchMoved = true;
-        }, { passive: true });
+            e.preventDefault();
+            e.stopPropagation();
+            const dy = tY0 - e.touches[0].clientY;
+            if (Math.abs(dy) > 8) didMove = true;
+
+            if (i === selectedIdx) {
+                if (dy > 0) {
+                    const lift    = Math.min(dy, 230);
+                    const scale   = 1.14 + lift * 0.0005;
+                    el.style.transform = `translateY(${-(26 + lift)}px) scale(${scale.toFixed(3)})`;
+                    // Visual "lock" feedback at threshold
+                    const nowArmed = dy > 50;
+                    if (nowArmed !== swipeArmed) {
+                        swipeArmed = nowArmed;
+                        el.classList.toggle("armed", swipeArmed);
+                    }
+                } else {
+                    // Pulled back below baseline
+                    el.style.transform = `translateY(-26px) scale(1.14)`;
+                    if (swipeArmed) { swipeArmed = false; el.classList.remove("armed"); }
+                }
+            }
+        }, { passive: false });
 
         el.addEventListener("touchend", e => {
-            const dy = touchStartY - e.changedTouches[0].clientY; // positive = swipe up
+            e.preventDefault(); // critical: suppress iOS synthetic click
+            e.stopPropagation();
+            const dy = tY0 - e.changedTouches[0].clientY;
 
-            if (dy > 40 && i === selectedIdx) {
-                // Swipe up on selected card = commit to play
-                // Card is now "armed" — next canvas drag fires the shot
-                // Visual: pulse the hint
+            if (i === selectedIdx && swipeArmed && dy > 50) {
+                // ── Committed swipe → fly off, stay armed for canvas drag ──
+                el.classList.remove("armed");
+                el.style.transition = "";
+                el.style.transform  = ""; // let flyoff @keyframes take over
+                el.classList.add("flying");
+                swipeArmed = false;
                 const hint = document.getElementById("swing-hint");
-                hint.style.color = "var(--safe)";
-                hint.textContent = "✓ CARD ARMED · TAP CANVAS TO AIM";
+                hint.textContent = "✓ DRAG ANYWHERE ON COURSE TO AIM";
+                hint.style.color   = "var(--safe)";
                 hint.style.opacity = "1";
-                // Brief flash on card
-                el.style.boxShadow = "0 0 30px rgba(34,197,94,0.7)";
-                setTimeout(() => el.style.boxShadow = "", 400);
-            } else if (!touchMoved) {
-                // Tap = select toggle (shows card raised for easy reading)
-                hidePreview();
-                selectCard(i);
+            } else if (i === selectedIdx) {
+                // Spring back to selected position
+                el.style.transition = "transform 0.28s cubic-bezier(.175,.885,.32,1.275), border-color 0.2s, box-shadow 0.2s";
+                el.style.transform  = "";
+                el.classList.remove("armed");
+                swipeArmed = false;
+                if (!didMove) selectCard(i); // tap on selected = deselect
+            } else {
+                if (!didMove) selectCard(i); // tap on unselected = select
             }
-        });
+        }, { passive: false });
 
         handEl.appendChild(el);
     });
@@ -1160,10 +1235,9 @@ function updateHint() {
         hint.style.opacity="1"; hint.style.color="var(--accent)";
     } else if (selectedIdx !== -1) {
         const cost = getStaminaCost(hand[selectedIdx].cost);
-        // Different hint for touch vs mouse
         const isTouchDevice = window.matchMedia("(hover: none)").matches;
         hint.textContent = isTouchDevice
-            ? `SWIPE UP CARD TO ARM · THEN DRAG CANVAS TO AIM  (costs ${cost})`
+            ? `SWIPE CARD UP TO ARM · THEN DRAG COURSE TO AIM  (costs ${cost})`
             : `CLICK ANYWHERE · DRAG TO AIM · SHORT DRAG = CANCEL  (costs ${cost})`;
         hint.style.opacity="1"; hint.style.color = cost>1 ? "var(--danger)" : "var(--accent)";
     } else if (isBallMoving()) {
@@ -1313,14 +1387,17 @@ function showHoleComplete() {
     document.getElementById("stars-row").textContent =
         state.swingsThisHole<=2 ? "⭐⭐⭐" : state.swingsThisHole<=4 ? "⭐⭐" : "⭐";
 
-    // Card tab
+    // ── Card tab ─────────────────────────────────────────────────
     switchRewardTab("card");
     const picks = [];
     while (picks.length < 3) {
         const c = ALL_CLUBS[Math.floor(Math.random()*ALL_CLUBS.length)];
         if (!picks.some(p => p.name === c.name)) picks.push(c);
     }
-    let bonusPicked = false;
+
+    let selectedCard  = null; // the card object the player has highlighted
+    let selectedCardEl = null;
+
     const bonusEl = document.getElementById("bonus-cards");
     bonusEl.innerHTML = "";
     picks.forEach(card => {
@@ -1328,21 +1405,28 @@ function showHoleComplete() {
         el.className = "card bonus-card";
         el.innerHTML = cardHTML(card);
         el.onclick = () => {
-            if (bonusPicked) return;
-            bonusPicked = true; el.classList.add("picked");
-            bonusHand.push({...card});
-            spawnFloat(`+${card.name}!`, W/2, H/2, "#4ade80");
+            // Deselect previous
+            if (selectedCardEl) selectedCardEl.classList.remove("picked");
+            if (selectedCard === card) {
+                // Clicking same card again = deselect
+                selectedCard   = null;
+                selectedCardEl = null;
+            } else {
+                selectedCard   = card;
+                selectedCardEl = el;
+                el.classList.add("picked");
+            }
         };
         bonusEl.appendChild(el);
     });
 
-    // Relic tab — offer 2 relics the player doesn't already have
-    const available = RELICS.filter(r => !relics.some(h => h.id === r.id));
-    const relicPicks = [];
-    const shuffled = available.sort(() => Math.random()-0.5);
-    relicPicks.push(...shuffled.slice(0, Math.min(2, shuffled.length)));
+    // ── Relic tab ─────────────────────────────────────────────────
+    const available  = RELICS.filter(r => !relics.some(h => h.id === r.id));
+    const relicPicks = available.sort(() => Math.random()-0.5).slice(0, 2);
 
-    let relicPicked = false;
+    let selectedRelic   = null;
+    let selectedRelicEl = null;
+
     const relicEl = document.getElementById("relic-choices");
     relicEl.innerHTML = "";
     if (relicPicks.length === 0) {
@@ -1353,18 +1437,35 @@ function showHoleComplete() {
             el.className = "relic-card" + (relic.cursed ? " cursed" : "");
             el.innerHTML = relicCardHTML(relic);
             el.onclick = () => {
-                if (relicPicked) return;
-                relicPicked = true; el.classList.add("picked");
-                relics.push({...relic});
-                if (relic.onApply) relic.onApply();
-                updateRelicBar();
-                spawnFloat(`${relic.icon} ${relic.name}!`, W/2, H/2, relic.color);
+                if (selectedRelicEl) selectedRelicEl.classList.remove("picked");
+                if (selectedRelic === relic) {
+                    selectedRelic   = null;
+                    selectedRelicEl = null;
+                } else {
+                    selectedRelic   = relic;
+                    selectedRelicEl = el;
+                    el.classList.add("picked");
+                }
             };
             relicEl.appendChild(el);
         });
     }
 
-    document.getElementById("btn-next").onclick = nextHole;
+    // ── Next Hole button — commits the selection ──────────────────
+    document.getElementById("btn-next").onclick = () => {
+        if (selectedCard) {
+            bonusHand.push({...selectedCard});
+            spawnFloat(`+${selectedCard.name}!`, W/2, H/2, "#4ade80");
+        }
+        if (selectedRelic) {
+            relics.push({...selectedRelic});
+            if (selectedRelic.onApply) selectedRelic.onApply();
+            updateRelicBar();
+            spawnFloat(`${selectedRelic.icon} ${selectedRelic.name}!`, W/2, H/2, selectedRelic.color);
+        }
+        nextHole();
+    };
+
     showOverlay("overlay-complete");
 }
 
@@ -1826,29 +1927,57 @@ function drawAimLine() {
 // ═══════════════════════════════════════════════════════════════
 
 function loop() {
-    ctx.clearRect(0,0,W,H);
+    // Always fill canvas with background colour first — prevents white gaps in overview mode
+    ctx.fillStyle = "#0a1f0e";
+    ctx.fillRect(0, 0, W, H);
 
     camUpdate();
-    if (cam.mode!=="overview") updatePhysics();
+    if (cam.mode !== "overview") updatePhysics();
 
-    // Apply camera transform
-    ctx.save();
-    ctx.scale(cam.zoom, cam.zoom);
-    ctx.translate(-cam.x, -cam.y);
-    drawScene();
-    ctx.restore();
+    if (cam.mode === "overview") {
+        // Draw overview as a centred inset panel, not by zooming the full canvas
+        const scale  = Math.min(W / WORLD_W, H / WORLD_H) * 0.88;
+        const pw     = WORLD_W * scale;
+        const ph     = WORLD_H * scale;
+        const px     = (W - pw) / 2;
+        const py     = (H - ph) / 2;
 
-    // Screen-space overlays
-    drawHoleIndicator();
-
-    // Pan mode cursor hint — show grab icon near cursor while panning
-    if (drag.active && drag.mode === "pan") {
         ctx.save();
-        ctx.fillStyle = "rgba(255,255,255,0.15)";
-        ctx.strokeStyle = "rgba(255,255,255,0.4)";
-        ctx.lineWidth = 1.5;
-        ctx.beginPath(); ctx.arc(drag.curX, drag.curY, 16, 0, TAU); ctx.fill(); ctx.stroke();
+        // Border
+        ctx.strokeStyle = "rgba(251,191,36,0.4)";
+        ctx.lineWidth   = 2;
+        ctx.strokeRect(px - 1, py - 1, pw + 2, ph + 2);
+
+        ctx.beginPath(); ctx.rect(px, py, pw, ph); ctx.clip();
+        ctx.translate(px, py);
+        ctx.scale(scale, scale);
+        drawScene();
         ctx.restore();
+
+        // Centred label
+        ctx.fillStyle = "rgba(251,191,36,0.7)";
+        ctx.font = "bold 12px 'Rajdhani', sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("OVERVIEW  ·  TAP 🎯 TO PLAY", W / 2, py + ph + 18);
+    } else {
+        // Normal play view
+        ctx.save();
+        ctx.scale(cam.zoom, cam.zoom);
+        ctx.translate(-cam.x, -cam.y);
+        drawScene();
+        ctx.restore();
+
+        drawHoleIndicator();
+
+        // Pan cursor hint
+        if (drag.active && drag.mode === "pan") {
+            ctx.save();
+            ctx.fillStyle   = "rgba(255,255,255,0.12)";
+            ctx.strokeStyle = "rgba(255,255,255,0.35)";
+            ctx.lineWidth   = 1.5;
+            ctx.beginPath(); ctx.arc(drag.curX, drag.curY, 16, 0, TAU); ctx.fill(); ctx.stroke();
+            ctx.restore();
+        }
     }
 
     // Keep hint fresh while ball is rolling
@@ -1931,6 +2060,5 @@ function newRunFromToast() {
 
 init();
 </script>
-
 </body>
 </html>
