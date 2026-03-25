@@ -8,12 +8,12 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;800&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #121814;
+  --bg: #0f172a;
   --f-dark: #10b981;
   --f-light: #34d399;
-  --accent: #22c55e;
+  --accent: #3b82f6;
   --ui-glass: rgba(255, 255, 255, 0.95);
-  --text-dark: #0f172a;
+  --text-dark: #1e293b;
   --safe: env(safe-area-inset-bottom, 20px);
 }
 
@@ -25,6 +25,7 @@ body, html {
   font-family: 'Quicksand', sans-serif; color: #fff;
 }
 
+/* Canvas is behind everything */
 canvas { display: block; position: absolute; top: 0; left: 0; z-index: 1; }
 
 /* HUD - TOP */
@@ -47,10 +48,22 @@ canvas { display: block; position: absolute; top: 0; left: 0; z-index: 1; }
 
 #pip-bar { display: flex; gap: 3px; margin-top: 6px; flex-wrap: wrap; max-width: 140px;}
 .pip { width: 10px; height: 14px; border-radius: 3px; background: #cbd5e1; transition: background 0.2s;}
-.pip.on { background: var(--accent); box-shadow: 0 2px 6px rgba(34, 197, 94, 0.5); }
+.pip.on { background: #22c55e; box-shadow: 0 2px 6px rgba(34, 197, 94, 0.5); }
 .pip.warn { background: #ef4444; animation: blink 0.6s infinite alternate; }
 
 @keyframes blink { from { opacity: 0.4 } to { opacity: 1 } }
+
+.mission-text { font-size: 12px; color: var(--text-dark); font-weight: 700; transition: color 0.3s; }
+.mission-failed { color: #ef4444 !important; text-decoration: line-through; }
+
+/* TOAST MESSAGE */
+#toast {
+  position: absolute; top: 150px; left: 50%; transform: translateX(-50%);
+  background: #ef4444; color: white; padding: 8px 20px; border-radius: 20px;
+  font-family: 'Poppins', sans-serif; font-size: 12px; font-weight: 800;
+  box-shadow: 0 5px 15px rgba(239, 68, 68, 0.5);
+  opacity: 0; transition: opacity 0.3s; z-index: 50; pointer-events: none;
+}
 
 /* HAND - BOTTOM */
 #hand-layer {
@@ -63,33 +76,29 @@ canvas { display: block; position: absolute; top: 0; left: 0; z-index: 1; }
 #hand { display: flex; gap: 10px; pointer-events: auto; padding: 10px; }
 
 .card {
-  width: 90px; height: 135px; background: white;
+  width: 85px; height: 125px; background: white;
   border-radius: 14px; border: 3px solid transparent;
   display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-  padding: 12px 5px 8px; cursor: pointer;
+  padding: 15px 5px; cursor: pointer;
   box-shadow: 0 10px 25px rgba(0,0,0,0.25);
   transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-color 0.2s;
   position: relative;
 }
 
-.card.sel { transform: translateY(-25px); border-color: var(--accent); box-shadow: 0 15px 35px rgba(34, 197, 94, 0.4); }
-
-.cico { font-size: 32px; line-height: 1; margin-top: 5px; }
-.cnam { font-family: 'Poppins', sans-serif; font-size: 11px; font-weight: 800; color: var(--text-dark); text-align: center; line-height: 1.1; margin-top: 4px;}
+.card.sel { transform: translateY(-25px); border-color: var(--accent); box-shadow: 0 15px 35px rgba(59, 130, 246, 0.4); }
+.cico { font-size: 32px; line-height: 1; }
+.cnam { font-family: 'Poppins', sans-serif; font-size: 10px; font-weight: 800; color: var(--text-dark); text-align: center; line-height: 1.1;}
 .ccst { position: absolute; top: -8px; right: -8px; width: 24px; height: 24px; background: #ef4444; color: white; border-radius: 50%; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; border: 2px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3);}
 
-/* New Stats block on card */
-.c-stats { display: flex; flex-direction: column; align-items: center; width: 100%; margin-top: auto; border-top: 1px solid #f1f5f9; padding-top: 5px;}
-.c-pow { font-size: 10px; font-weight: 800; color: #0f172a; }
-.c-eff { font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
-
 /* MODALS */
-#ov { position: absolute; inset: 0; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; z-index: 100; }
+#ov { position: absolute; inset: 0; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; z-index: 100; transition: opacity 0.3s;}
 #pan { background: white; padding: 30px 20px; border-radius: 24px; text-align: center; width: 90%; max-width: 360px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); pointer-events: auto;}
 #ptitle { font-family: 'Poppins', sans-serif; font-size: 26px; font-weight: 800; color: var(--text-dark); margin: 0 0 10px; }
 
-.btn { display: inline-block; background: var(--accent); color: white; font-family: 'Poppins', sans-serif; font-size: 15px; font-weight: 800; padding: 15px 30px; border-radius: 12px; border: none; margin-top: 20px; cursor: pointer; text-transform: uppercase; transition: transform 0.15s, box-shadow 0.15s; box-shadow: 0 6px 15px rgba(34, 197, 94, 0.4); width: 100%;}
-.btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(34, 197, 94, 0.5); }
+.btn { display: inline-block; background: var(--accent); color: white; font-family: 'Poppins', sans-serif; font-size: 15px; font-weight: 800; padding: 15px 30px; border-radius: 12px; border: none; margin-top: 20px; cursor: pointer; text-transform: uppercase; transition: transform 0.15s, box-shadow 0.15s; box-shadow: 0 6px 15px rgba(59, 130, 246, 0.4); width: 100%;}
+.btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(59, 130, 246, 0.5); }
+.btn.danger { background: #ef4444; box-shadow: 0 6px 15px rgba(239, 68, 68, 0.4); }
+.btn.danger:hover { box-shadow: 0 10px 20px rgba(239, 68, 68, 0.5); }
 
 #draft-section { margin-top: 15px; }
 #bonus-row { display: flex; gap: 8px; justify-content: center; margin-top: 10px; }
@@ -100,9 +109,9 @@ canvas { display: block; position: absolute; top: 0; left: 0; z-index: 1; }
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   padding: 8px 4px; cursor: pointer; transition: 0.2s;
 }
-.b-card.sel { border-color: var(--accent); background: #f0fdf4; transform: scale(1.05); }
+.b-card.sel { border-color: #22c55e; background: #f0fdf4; transform: scale(1.05); }
 
-.hidden { display: none !important; }
+.hidden { display: none !important; opacity: 0; pointer-events: none;}
 </style>
 </head>
 <body>
@@ -121,10 +130,12 @@ canvas { display: block; position: absolute; top: 0; left: 0; z-index: 1; }
     </div>
   </div>
   <div class="panel" style="align-self: center; padding: 6px 20px; align-items: center;">
-    <span class="hlbl">Mission</span>
-    <span id="mission-ui" style="font-size: 12px; color: var(--text-dark); font-weight: 700;">Clear the Hole</span>
+    <span class="hlbl">Bonus Mission</span>
+    <span id="mission-ui" class="mission-text">Clear the Hole</span>
   </div>
 </div>
+
+<div id="toast">MISSION PENALTY!</div>
 
 <div id="hand-layer">
   <div id="hand"></div>
@@ -134,46 +145,53 @@ canvas { display: block; position: absolute; top: 0; left: 0; z-index: 1; }
 <div id="ov">
   <div id="pan">
     <h2 id="ptitle">LET'S GOLF!</h2>
-    <p id="p-body" style="color: #64748b; font-size: 14px; line-height: 1.4; margin:0;">Complete missions and sink the ball. Build your deck of power-ups!</p>
+    <p id="p-body" style="color: #64748b; font-size: 14px; line-height: 1.4; margin:0;">Drag anywhere to aim. Build your deck and don't run out of swings!</p>
     
     <div id="draft-section" class="hidden">
       <div class="hlbl" style="margin-bottom: 5px; font-size: 11px;">Draft a Power-Up</div>
       <div id="bonus-row"></div>
     </div>
 
-    <button class="btn" id="p-btn" onclick="window.panelAction()">TEE OFF</button>
+    <!-- UI Buttons trigger robust global functions -->
+    <button class="btn" id="btn-start" onclick="startGame()">TEE OFF</button>
+    <button class="btn hidden" id="btn-next" onclick="advanceHole()">NEXT HOLE</button>
+    <button class="btn danger hidden" id="btn-restart" onclick="restartRun()">NEW RUN</button>
   </div>
 </div>
 
 <script>
 "use strict";
 
-// Added 'color' for aim lines, and 'efxName' for card UI
-const BASE_CARDS = [
-  { id: 'putt', name: 'Precision', ico: '🎯', pow: 0.6, cost: 1, color: '#3b82f6', efxName: 'Standard' },
-  { id: 'iron', name: 'Striker', ico: '⛳', pow: 1.3, cost: 1, color: '#3b82f6', efxName: 'Standard' },
-  { id: 'drive', name: 'Overdrive', ico: '🚀', pow: 2.6, cost: 2, color: '#ef4444', efxName: 'Heavy Hit' }
+const STARTING_CARDS = [
+  { id: 'putt', name: 'Precision', ico: '🎯', pow: 0.6, cost: 1, color: '#3b82f6' },
+  { id: 'iron', name: 'Striker', ico: '⛳', pow: 1.3, cost: 1, color: '#3b82f6' },
+  { id: 'drive', name: 'Overdrive', ico: '🚀', pow: 2.6, cost: 2, color: '#ef4444' }
 ];
 
 const LOOT_POOL = [
-  { id: 'magnet', name: 'Homing', ico: '🧲', pow: 1.1, cost: 1, effect: 'magnet', desc: 'Curves to Hole', color: '#a855f7', efxName: 'Magnet' },
-  { id: 'bouncy', name: 'Bouncy', ico: '🏀', pow: 1.3, cost: 1, effect: 'bouncy', desc: 'Wall Bounce', color: '#f59e0b', efxName: 'Bounce' },
-  { id: 'jump', name: 'Jetpack', ico: '🪂', pow: 1.6, cost: 2, effect: 'jump', desc: 'Fly over Sand', color: '#06b6d4', efxName: 'Flight' },
-  { id: 'sticky', name: 'Sticky', ico: '🟢', pow: 1.4, cost: 1, effect: 'sticky', desc: 'Impact Stop', color: '#10b981', efxName: 'Brake' }
+  { id: 'magnet', name: 'Homing', ico: '🧲', pow: 1.1, cost: 1, effect: 'magnet', desc: 'Curves to Hole', color: '#a855f7' },
+  { id: 'bouncy', name: 'Bouncy', ico: '🏀', pow: 1.3, cost: 1, effect: 'bouncy', desc: 'Wall Bounce', color: '#f59e0b' },
+  { id: 'jump', name: 'Jetpack', ico: '🪂', pow: 1.6, cost: 2, effect: 'jump', desc: 'Fly over Sand', color: '#06b6d4' },
+  { id: 'sticky', name: 'Sticky', ico: '🟢', pow: 1.4, cost: 1, effect: 'sticky', desc: 'Impact Stop', color: '#10b981' }
 ];
 
 const canvas = document.getElementById('gc');
 const ctx = canvas.getContext('2d');
 
-let W, H, level = 1, shots = 0, stamina = 12, time = 0, bounces = 0;
+let W, H;
+let ACTIVE_DECK = [];
+let level = 1, shots = 0, stamina = 12, time = 0, bounces = 0;
 let ball = { x: 0, y: 0, vx: 0, vy: 0, r: 8, h: 0, sh: 0, effect: null };
 let hole = { x: 0, y: 0, r: 15 };
 let cam = { x: 0, y: 0, tx: 0, ty: 0 };
 let segments = [], hazards = [], hand = [], draftPool = [], draftIdx = -1, selectedIndex = -1;
-let isDrag = false, isPan = false, dStart = { x: 0, y: 0 }, dCur = { x: 0, y: 0 };
-let grassTufts = [], mission = { type: 'clear', desc: 'Clear the Hole' };
+let isDrag = false, isPan = false, wasMoving = false, isHoleComplete = false;
+let dStart = { x: 0, y: 0 }, dCur = { x: 0, y: 0 };
+let grassTufts = [];
+let mission = { type: 'clear', val: 0, desc: 'Clear the Hole', failed: false };
+let teePos = { x: 0, y: 0 };
 
-/** UI GLOBALS **/
+/** GLOBAL UI FUNCTIONS **/
 window.selectCard = (i) => {
     selectedIndex = (selectedIndex === i) ? -1 : i;
     renderHand();
@@ -184,19 +202,51 @@ window.pickDraft = (i) => {
     document.querySelectorAll('.b-card').forEach((c, idx) => c.classList.toggle('sel', idx === i));
 };
 
-window.panelAction = () => {
-    const dSec = document.getElementById('draft-section');
-    if (!dSec.classList.contains('hidden') && draftIdx !== -1) {
-        BASE_CARDS.push(draftPool[draftIdx]);
+window.startGame = () => {
+    document.getElementById('ov').classList.add('hidden');
+};
+
+window.advanceHole = () => {
+    if (draftIdx !== -1) {
+        ACTIVE_DECK.push(draftPool[draftIdx]);
         draftIdx = -1;
-        dSec.classList.add('hidden');
     }
     document.getElementById('ov').classList.add('hidden');
+    document.getElementById('draft-section').classList.add('hidden');
     level++; shots = 0; bounces = 0;
     generateCourse(); dealHand();
 };
 
-/** CORE ENGINE **/
+window.restartRun = () => {
+    level = 1; shots = 0; stamina = 12; bounces = 0;
+    ACTIVE_DECK = [...STARTING_CARDS];
+    document.getElementById('ov').classList.add('hidden');
+    document.getElementById('draft-section').classList.add('hidden');
+    generateCourse(); dealHand();
+};
+
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.innerText = msg;
+    t.style.opacity = 1;
+    setTimeout(() => { t.style.opacity = 0; }, 2500);
+}
+
+/** CORE ENGINE & SETUP **/
+function init() {
+    resize();
+    genGrass();
+    ACTIVE_DECK = [...STARTING_CARDS];
+    generateCourse();
+    dealHand();
+    
+    // Hide specialized buttons on first load
+    document.getElementById('btn-next').classList.add('hidden');
+    document.getElementById('btn-restart').classList.add('hidden');
+    
+    requestAnimationFrame(loop);
+}
+
 function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
 
 function genGrass() {
@@ -211,48 +261,69 @@ function generateCourse() {
     segments = []; hazards = []; const sz = 300; let cx = 0, cy = 0;
     segments.push({ x: cx, y: cy, w: sz, h: sz });
 
+    let retries = 0;
     for (let i = 0; i < 6; i++) {
+        let nx = cx, ny = cy;
         const dir = Math.floor(Math.random() * 4);
-        if (dir === 0) cy -= sz; else if (dir === 1) cx += sz;
-        else if (dir === 2) cy += sz; else if (dir === 3) cx -= sz;
+        if (dir === 0) ny -= sz; else if (dir === 1) nx += sz;
+        else if (dir === 2) ny += sz; else if (dir === 3) nx -= sz;
 
-        if (!segments.some(s => s.x === cx && s.y === cy)) {
+        // Prevent overlapping segments (Fixes Infinite Loop crash)
+        if (!segments.some(s => s.x === nx && s.y === ny)) {
+            cx = nx; cy = ny;
             segments.push({ x: cx, y: cy, w: sz, h: sz });
             if (i > 1 && Math.random() > 0.6) hazards.push({ x: cx + 70, y: cy + 70, w: 100, h: 100 });
-        } else i--;
+            retries = 0;
+        } else {
+            i--;
+            retries++;
+            if (retries > 10) break; // Emergency escape
+        }
     }
 
-    ball.x = segments[0].x + sz / 2; ball.y = segments[0].y + sz / 2;
+    teePos = { x: segments[0].x + sz / 2, y: segments[0].y + sz / 2 };
+    ball.x = teePos.x; ball.y = teePos.y;
     ball.vx = ball.vy = ball.h = 0; ball.effect = null;
+    
     const last = segments[segments.length - 1];
     hole.x = last.x + sz / 2; hole.y = last.y + sz / 2;
 
-    const ms = [{t:'shots', d:'Clear in 4 strokes'}, {t:'bounces', d:'Zero wall bounces'}, {t:'clear', d:'Clear the Hole'}];
-    mission = ms[Math.floor(Math.random()*ms.length)];
-    document.getElementById('mission-ui').innerText = mission.d;
+    // Set Mission
+    const ms = [
+        { t: 'shots', v: 4, d: 'Clear in 4 strokes or less' }, 
+        { t: 'bounces', v: 0, d: 'Zero wall bounces' }
+    ];
+    const m = ms[Math.floor(Math.random() * ms.length)];
+    mission = { type: m.t, val: m.v, desc: m.d, failed: false };
+    
+    const mUI = document.getElementById('mission-ui');
+    mUI.innerText = mission.desc;
+    mUI.classList.remove('mission-failed');
+
+    isHoleComplete = false;
+    wasMoving = false;
 
     cam.tx = ball.x - W / 2; cam.ty = ball.y - H / 2;
     cam.x = cam.tx; cam.y = cam.ty;
     refreshHUD();
 }
 
+/** PHYSICS & STATE UPDATES **/
 function update() {
     time += 0.02;
     const speed = Math.hypot(ball.vx, ball.vy);
     const moving = speed > 0.1;
 
     if (moving) {
+        wasMoving = true;
+        
         ball.h = Math.max(0, ball.h + ball.sh); ball.sh -= 0.12;
         if (ball.h <= 0) { ball.h = 0; ball.sh = 0; }
 
         if (ball.effect === 'magnet') {
             const dx = hole.x - ball.x, dy = hole.y - ball.y;
             const d = Math.max(1, Math.hypot(dx, dy));
-            // Range limit on Magnet (180px)
-            if (d < 180) {
-                ball.vx += dx / d * 0.25; 
-                ball.vy += dy / d * 0.25;
-            }
+            if (d < 180) { ball.vx += dx / d * 0.25; ball.vy += dy / d * 0.25; }
         }
 
         ball.x += ball.vx; ball.y += ball.vy;
@@ -273,7 +344,14 @@ function update() {
         const relX = ball.x - cam.x, relY = ball.y - cam.y, px = W * 0.3, py = H * 0.3;
         if (relX < px) cam.tx = ball.x - px; else if (relX > W - px) cam.tx = ball.x - (W - px);
         if (relY < py) cam.ty = ball.y - py; else if (relY > H - py) cam.ty = ball.y - (H - py);
-    } else { ball.vx = 0; ball.vy = 0; ball.h = 0; }
+
+    } else {
+        ball.vx = ball.vy = 0; ball.h = 0;
+        if (wasMoving) {
+            wasMoving = false;
+            onBallStopped();
+        }
+    }
 
     cam.x += (cam.tx - cam.x) * 0.11;
     cam.y += (cam.ty - cam.y) * 0.11;
@@ -286,21 +364,48 @@ function checkCollisions() {
         ball.vx *= rest; ball.vy *= rest;
         ball.x += ball.vx * 2; ball.y += ball.vy * 2;
         bounces++;
+
+        // SEVERE MISSION PENALTY
+        if (mission.type === 'bounces' && !mission.failed) {
+            mission.failed = true;
+            document.getElementById('mission-ui').classList.add('mission-failed');
+            
+            // Teleport to start & sap stamina
+            ball.x = teePos.x; ball.y = teePos.y;
+            ball.vx = ball.vy = 0;
+            stamina = Math.max(0, stamina - 1);
+            showToast("MISSION FAILED: TEE PENALTY (-1 SWING)");
+            refreshHUD();
+            
+            cam.tx = ball.x - W / 2; cam.ty = ball.y - H / 2;
+        }
     }
 }
 
+function onBallStopped() {
+    if (isHoleComplete) return; 
+    
+    // Evaluate Shots Mission
+    if (mission.type === 'shots' && shots > mission.val && !mission.failed) {
+        mission.failed = true;
+        document.getElementById('mission-ui').classList.add('mission-failed');
+        showToast("MISSION FAILED: TOO MANY SHOTS");
+    }
+
+    if (stamina <= 0) triggerGameOver();
+}
+
+/** DRAWING **/
 function draw() {
     ctx.clearRect(0, 0, W, H);
-    ctx.fillStyle = '#1e293b'; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#0f172a'; ctx.fillRect(0, 0, W, H);
 
     ctx.save();
     ctx.translate(-cam.x, -cam.y);
 
-    // Grass Tufts
-    ctx.fillStyle = '#334155';
-    grassTufts.forEach(t => ctx.fillRect(t.x + Math.sin(time + t.off) * 2, t.y, 2, 2));
+    ctx.fillStyle = '#1e293b';
+    grassTufts.forEach(t => ctx.fillRect(t.x + Math.sin(time + t.off) * 2, t.y, 3, 3));
 
-    // Fairway
     const sw = 50;
     segments.forEach(s => {
         for (let y = s.y; y < s.y + s.h; y += sw) {
@@ -309,10 +414,8 @@ function draw() {
         }
     });
 
-    // Sand Traps
-    ctx.fillStyle = '#fef08a'; hazards.forEach(h => ctx.fillRect(h.x, h.y, h.w, h.h));
+    ctx.fillStyle = '#fde047'; hazards.forEach(h => ctx.fillRect(h.x, h.y, h.w, h.h));
 
-    // Curbs
     ctx.strokeStyle = '#fff'; ctx.lineWidth = 6; ctx.lineJoin = 'round';
     segments.forEach(s => {
         const sz = 300;
@@ -323,109 +426,60 @@ function draw() {
         if (!exists(sz, 0)) { ctx.beginPath(); ctx.moveTo(s.x + sz, s.y - 3); ctx.lineTo(s.x + sz, s.y + sz + 3); ctx.stroke(); }
     });
 
-    // Hole
     ctx.fillStyle = '#0f172a'; ctx.beginPath(); ctx.arc(hole.x, hole.y, hole.r, 0, 6.28); ctx.fill();
-
-    // Ball Shadow 
     ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.beginPath(); ctx.arc(ball.x + (ball.h/2), ball.y + (ball.h/2), ball.r, 0, 6.28); ctx.fill();
-
-    // Ball
     ctx.fillStyle = 'white'; ctx.beginPath(); ctx.arc(ball.x, ball.y - ball.h, ball.r + (ball.h / 4), 0, 6.28); ctx.fill();
 
-    // Visual Aim Line (Scaled by Card Power & Colored)
     if (isDrag && selectedIndex !== -1 && !isPan) {
         const card = hand[selectedIndex];
         const dx = dStart.x - dCur.x, dy = dStart.y - dCur.y;
-        
-        // Base drag capped at 120px, then multiplied by card power for visual line
         const dragDist = Math.min(Math.hypot(dx, dy), 120);
-        const drawDist = dragDist * card.pow * 1.5; // 1.5x scale for visual drama
+        const drawDist = dragDist * card.pow * 1.5; 
         const ang = Math.atan2(dy, dx);
         
         ctx.strokeStyle = card.color || '#3b82f6'; 
         ctx.lineWidth = 4; ctx.setLineDash([10, 5]);
-        
-        ctx.beginPath(); 
-        ctx.moveTo(ball.x, ball.y); 
-        ctx.lineTo(ball.x + Math.cos(ang) * drawDist, ball.y + Math.sin(ang) * drawDist); 
-        ctx.stroke(); 
-        
-        // Draw target circle at end of line
-        ctx.beginPath();
-        ctx.arc(ball.x + Math.cos(ang) * drawDist, ball.y + Math.sin(ang) * drawDist, 8, 0, 6.28);
-        ctx.stroke();
-        
+        ctx.beginPath(); ctx.moveTo(ball.x, ball.y); ctx.lineTo(ball.x + Math.cos(ang) * drawDist, ball.y + Math.sin(ang) * drawDist); ctx.stroke(); 
+        ctx.beginPath(); ctx.arc(ball.x + Math.cos(ang) * drawDist, ball.y + Math.sin(ang) * drawDist, 8, 0, 6.28); ctx.stroke();
         ctx.setLineDash([]);
     }
     ctx.restore();
-
-    // Off-Screen Hole Indicator
     drawOffscreenIndicator();
 }
 
 function drawOffscreenIndicator() {
-    // Screen relative hole coordinates
-    const hx = hole.x - cam.x;
-    const hy = hole.y - cam.y;
-
-    // Check if hole is out of bounds
+    const hx = hole.x - cam.x, hy = hole.y - cam.y;
     if (hx < 0 || hx > W || hy < 0 || hy > H) {
-        const cx = W / 2, cy = H / 2;
-        const angle = Math.atan2(hy - cy, hx - cx);
-        
-        const pad = 40; // padding from edge
-        const bounds = { left: pad, right: W - pad, top: pad + 100, bottom: H - pad - 180 }; // Extra padding for HUD/Hand
-        
-        // Ray-AABB intersection to find edge point
-        const tTop = (bounds.top - cy) / Math.sin(angle);
-        const tBottom = (bounds.bottom - cy) / Math.sin(angle);
-        const tLeft = (bounds.left - cx) / Math.cos(angle);
-        const tRight = (bounds.right - cx) / Math.cos(angle);
+        const cx = W / 2, cy = H / 2, angle = Math.atan2(hy - cy, hx - cx);
+        const pad = 40, b = { l: pad, r: W - pad, t: pad + 100, b: H - pad - 180 }; 
+        const tT = (b.t - cy) / Math.sin(angle), tB = (b.b - cy) / Math.sin(angle);
+        const tL = (b.l - cx) / Math.cos(angle), tR = (b.r - cx) / Math.cos(angle);
         
         let t = Infinity;
-        if (tTop > 0 && tTop < t) t = tTop;
-        if (tBottom > 0 && tBottom < t) t = tBottom;
-        if (tLeft > 0 && tLeft < t) t = tLeft;
-        if (tRight > 0 && tRight < t) t = tRight;
+        if (tT > 0 && tT < t) t = tT; if (tB > 0 && tB < t) t = tB;
+        if (tL > 0 && tL < t) t = tL; if (tR > 0 && tR < t) t = tR;
         
-        const ix = cx + Math.cos(angle) * t;
-        const iy = cy + Math.sin(angle) * t;
+        const ix = cx + Math.cos(angle) * t, iy = cy + Math.sin(angle) * t;
 
-        // Draw Pointer Triangle
-        ctx.save();
-        ctx.translate(ix, iy);
-        ctx.rotate(angle);
-        
-        // Glow
-        ctx.shadowBlur = 10; ctx.shadowColor = 'black';
-        ctx.fillStyle = '#ef4444';
-        
-        ctx.beginPath();
-        ctx.moveTo(15, 0);
-        ctx.lineTo(-10, 10);
-        ctx.lineTo(-5, 0);
-        ctx.lineTo(-10, -10);
-        ctx.closePath();
-        ctx.fill();
-        
+        ctx.save(); ctx.translate(ix, iy); ctx.rotate(angle);
+        ctx.shadowBlur = 10; ctx.shadowColor = 'black'; ctx.fillStyle = '#ef4444';
+        ctx.beginPath(); ctx.moveTo(15, 0); ctx.lineTo(-10, 10); ctx.lineTo(-5, 0); ctx.lineTo(-10, -10); ctx.closePath(); ctx.fill();
         ctx.restore();
     }
 }
 
-/** INPUTS & INTERACTION **/
-window.addEventListener('pointerdown', e => {
-    if (e.target.closest('.card') || e.target.closest('.panel') || e.target.closest('.b-card') || e.target.closest('.btn')) return;
-    
+/** INPUTS (ATTACHED TO CANVAS ONLY) **/
+canvas.addEventListener('pointerdown', e => {
     isDrag = true; dStart = { x: e.clientX, y: e.clientY }; dCur = { x: e.clientX, y: e.clientY };
     isPan = (selectedIndex === -1);
 });
 
-window.addEventListener('pointermove', e => {
+canvas.addEventListener('pointermove', e => {
     if (!isDrag) return; dCur = { x: e.clientX, y: e.clientY };
     if (isPan) { cam.tx -= (e.clientX - dStart.x); cam.ty -= (e.clientY - dStart.y); dStart = { x: e.clientX, y: e.clientY }; }
 });
 
-window.addEventListener('pointerup', () => {
+canvas.addEventListener('pointerup', () => {
     if (!isDrag) return; 
 
     if (selectedIndex !== -1 && !isPan) {
@@ -438,18 +492,17 @@ window.addEventListener('pointerup', () => {
                 ball.vx = Math.cos(ang) * pow; ball.vy = Math.sin(ang) * pow;
                 ball.effect = card.effect; stamina -= card.cost; shots++;
 
-                if (card.effect === 'jump') ball.sh = 3.5; 
+                if (card.effect === 'jump') ball.sh = 2.5; 
 
                 hand.splice(selectedIndex, 1); selectedIndex = -1;
                 if (hand.length === 0) setTimeout(dealHand, 600);
             }
         }
     }
-    
-    isDrag = isPan = false; refreshHUD(); 
-    if(selectedIndex === -1) renderHand(); 
+    isDrag = isPan = false; refreshHUD(); renderHand(); 
 });
 
+/** GAME FLOW & UI **/
 function refreshHUD() {
     const elL = document.getElementById('lvl-ui'), elS = document.getElementById('shot-ui'), bar = document.getElementById('pip-bar');
     if (elL) elL.innerText = level; if (elS) elS.innerText = shots;
@@ -464,7 +517,7 @@ function refreshHUD() {
 }
 
 function dealHand() {
-    hand = Array.from({ length: 3 }, () => ({ ...BASE_CARDS[Math.floor(Math.random() * BASE_CARDS.length)] }));
+    hand = Array.from({ length: 3 }, () => ({ ...ACTIVE_DECK[Math.floor(Math.random() * ACTIVE_DECK.length)] }));
     renderHand();
 }
 
@@ -475,42 +528,61 @@ function renderHand() {
         <div class="card ${selectedIndex === i ? 'sel' : ''}" onclick="window.selectCard(${i})">
             <div class="ccst">${c.cost}</div>
             <div class="cico">${c.ico}</div>
-            <div class="cnam">${c.name}</div>
-            <div class="c-stats">
-                <div class="c-eff" style="color: ${c.color || '#3b82f6'}">${c.efxName}</div>
-                <div class="c-pow">PWR ${c.pow}x</div>
-            </div>
+            <div class="cnam">${c.name.replace('\n', '<br>')}</div>
         </div>
     `).join('');
 }
 
 function triggerWin() {
     ball.vx = ball.vy = 0;
+    isHoleComplete = true;
     
-    let reward = 4;
-    if (mission.type === 'shots' && shots <= 4) reward += 2;
-    if (mission.type === 'bounces' && bounces === 0) reward += 2;
+    let reward = 2;
+    if (!mission.failed) reward += 2;
     stamina = Math.min(16, stamina + reward);
 
     document.getElementById('ov').classList.remove('hidden');
-    document.getElementById('ptitle').innerText = "HOLE COMPLETE!";
-    document.getElementById('p-body').innerText = `Objective checked. Swings restored (+${reward}). Pick a new power-up to add to your deck.`;
+    document.getElementById('ptitle').innerText = "HOLE COMPLETE";
+    document.getElementById('ptitle').style.color = "var(--text-dark)";
+    
+    let msg = `Swings restored (+${reward}).`;
+    if (!mission.failed) msg = `Mission Accomplished! Swings restored (+${reward}).`;
+    document.getElementById('p-body').innerText = `${msg} Pick a new power-up.`;
 
     document.getElementById('draft-section').classList.remove('hidden');
+    
+    // UI Button state machine update
+    document.getElementById('btn-start').classList.add('hidden');
+    document.getElementById('btn-restart').classList.add('hidden');
+    document.getElementById('btn-next').classList.remove('hidden');
+
     draftPool = Array.from({ length: 3 }, () => ({ ...LOOT_POOL[Math.floor(Math.random() * LOOT_POOL.length)] }));
     
     const row = document.getElementById('bonus-row');
     row.innerHTML = draftPool.map((c, i) => `
         <div class="b-card ${draftIdx === i ? 'sel' : ''}" onclick="window.pickDraft(${i})">
-            <div style="font-size: 28px;">${c.ico}</div>
+            <div style="font-size: 24px;">${c.ico}</div>
             <div style="font-weight: 800; font-family: Poppins; font-size: 11px; margin-top:5px; color:#0f172a; text-align: center;">${c.name.replace('\n', '<br>')}</div>
             <div style="color:#64748b; font-size:9px; text-align: center; margin-top: 3px;">${c.desc}</div>
         </div>
     `).join('');
 }
 
+function triggerGameOver() {
+    document.getElementById('ov').classList.remove('hidden');
+    document.getElementById('draft-section').classList.add('hidden');
+    
+    document.getElementById('ptitle').innerText = "OUT OF SWINGS";
+    document.getElementById('ptitle').style.color = "#ef4444";
+    document.getElementById('p-body').innerText = `You ran out of energy on Hole ${level}.`;
+    
+    document.getElementById('btn-start').classList.add('hidden');
+    document.getElementById('btn-next').classList.add('hidden');
+    document.getElementById('btn-restart').classList.remove('hidden');
+}
+
 function loop() { update(); draw(); requestAnimationFrame(loop); }
-window.onload = () => { resize(); genGrass(); generateCourse(); dealHand(); loop(); };
+window.onload = () => { init(); };
 window.onresize = resize;
 </script>
 </body>
