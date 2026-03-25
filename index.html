@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>ROGOLF: Casual Links</title>
+<title>ROGOLF: PRO TECH</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;800&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
 <style>
@@ -25,93 +25,72 @@ body, html {
   font-family: 'Quicksand', sans-serif; color: #fff;
 }
 
-/* Canvas is behind everything */
 canvas { display: block; position: absolute; top: 0; left: 0; z-index: 1; }
 
-/* HUD - TOP */
+/* HUD */
 #hud-layer {
   position: absolute; top: 0; left: 0; right: 0;
   padding: 20px 15px 0; display: flex; flex-direction: column; gap: 10px;
   pointer-events: none; z-index: 10;
 }
-
 .hud-row { display: flex; justify-content: space-between; align-items: flex-start; }
-
 .panel {
   background: var(--ui-glass); padding: 8px 12px; border-radius: 12px;
   box-shadow: 0 8px 25px rgba(0,0,0,0.2); pointer-events: auto;
   display: flex; flex-direction: column; align-items: flex-start;
 }
-
 .hlbl { font-size: 9px; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 1px; margin-bottom: 2px;}
 .hval { font-family: 'Poppins', sans-serif; font-size: 18px; font-weight: 800; color: var(--text-dark); line-height: 1; }
 
 #pip-bar { display: flex; gap: 3px; margin-top: 6px; flex-wrap: wrap; max-width: 140px;}
 .pip { width: 10px; height: 14px; border-radius: 3px; background: #cbd5e1; transition: background 0.2s;}
-.pip.on { background: #22c55e; box-shadow: 0 2px 6px rgba(34, 197, 94, 0.5); }
+.pip.on { background: #10b981; box-shadow: 0 2px 6px rgba(16, 185, 129, 0.5); }
 .pip.warn { background: #ef4444; animation: blink 0.6s infinite alternate; }
 
 @keyframes blink { from { opacity: 0.4 } to { opacity: 1 } }
-
-.mission-text { font-size: 12px; color: var(--text-dark); font-weight: 700; transition: color 0.3s; }
+.mission-text { font-size: 12px; color: var(--text-dark); font-weight: 700; }
 .mission-failed { color: #ef4444 !important; text-decoration: line-through; }
 
-/* TOAST MESSAGE */
-#toast {
-  position: absolute; top: 150px; left: 50%; transform: translateX(-50%);
-  background: #ef4444; color: white; padding: 8px 20px; border-radius: 20px;
-  font-family: 'Poppins', sans-serif; font-size: 12px; font-weight: 800;
-  box-shadow: 0 5px 15px rgba(239, 68, 68, 0.5);
-  opacity: 0; transition: opacity 0.3s; z-index: 50; pointer-events: none;
+/* WIND UI */
+#wind {
+    position: absolute; top: 120px; left: 50%; transform: translateX(-50%);
+    background: var(--ui-glass); padding: 5px 15px; border-radius: 20px;
+    display: flex; align-items: center; gap: 8px; color: var(--text-dark);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2); opacity: 0; transition: 0.5s; z-index: 10;
 }
+#wind.show { opacity: 1; }
 
-/* HAND - BOTTOM */
+/* HAND */
 #hand-layer {
   position: absolute; bottom: 0; left: 0; right: 0;
   padding-bottom: calc(var(--safe) + 15px);
-  display: flex; justify-content: center;
-  pointer-events: none; z-index: 10;
+  display: flex; justify-content: center; pointer-events: none; z-index: 100;
 }
-
 #hand { display: flex; gap: 10px; pointer-events: auto; padding: 10px; }
-
 .card {
-  width: 85px; height: 125px; background: white;
-  border-radius: 14px; border: 3px solid transparent;
+  width: 90px; height: 130px; background: white; border-radius: 14px; border: 3px solid transparent;
   display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-  padding: 15px 5px; cursor: pointer;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.25);
-  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-color 0.2s;
-  position: relative;
+  padding: 15px 5px; cursor: pointer; box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative;
 }
-
-.card.sel { transform: translateY(-25px); border-color: var(--accent); box-shadow: 0 15px 35px rgba(59, 130, 246, 0.4); }
+.card.sel { transform: translateY(-30px); border-color: var(--accent); box-shadow: 0 15px 35px rgba(59, 130, 246, 0.4); }
 .cico { font-size: 32px; line-height: 1; }
-.cnam { font-family: 'Poppins', sans-serif; font-size: 10px; font-weight: 800; color: var(--text-dark); text-align: center; line-height: 1.1;}
-.ccst { position: absolute; top: -8px; right: -8px; width: 24px; height: 24px; background: #ef4444; color: white; border-radius: 50%; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; border: 2px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3);}
+.cnam { font-family: 'Poppins', sans-serif; font-size: 10px; font-weight: 800; color: var(--text-dark); text-align: center; }
+.ccst { position: absolute; top: -8px; right: -8px; width: 24px; height: 24px; background: #ef4444; color: white; border-radius: 50%; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; border: 2px solid white; }
 
 /* MODALS */
-#ov { position: absolute; inset: 0; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; z-index: 100; transition: opacity 0.3s;}
-#pan { background: white; padding: 30px 20px; border-radius: 24px; text-align: center; width: 90%; max-width: 360px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); pointer-events: auto;}
+#ov { position: absolute; inset: 0; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; z-index: 500; }
+#pan { background: white; padding: 30px; border-radius: 24px; text-align: center; width: 90%; max-width: 360px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); pointer-events: auto;}
 #ptitle { font-family: 'Poppins', sans-serif; font-size: 26px; font-weight: 800; color: var(--text-dark); margin: 0 0 10px; }
 
-.btn { display: inline-block; background: var(--accent); color: white; font-family: 'Poppins', sans-serif; font-size: 15px; font-weight: 800; padding: 15px 30px; border-radius: 12px; border: none; margin-top: 20px; cursor: pointer; text-transform: uppercase; transition: transform 0.15s, box-shadow 0.15s; box-shadow: 0 6px 15px rgba(59, 130, 246, 0.4); width: 100%;}
-.btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(59, 130, 246, 0.5); }
-.btn.danger { background: #ef4444; box-shadow: 0 6px 15px rgba(239, 68, 68, 0.4); }
-.btn.danger:hover { box-shadow: 0 10px 20px rgba(239, 68, 68, 0.5); }
+.btn { display: inline-block; background: var(--accent); color: white; font-family: 'Poppins', sans-serif; font-size: 16px; font-weight: 800; padding: 16px 40px; border-radius: 12px; border: none; margin-top: 20px; cursor: pointer; text-transform: uppercase; width: 100%; }
 
 #draft-section { margin-top: 15px; }
 #bonus-row { display: flex; gap: 8px; justify-content: center; margin-top: 10px; }
+.b-card { flex: 1; min-width: 0; height: 110px; background: #f8fafc; border: 3px solid #e2e8f0; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 5px; cursor: pointer; }
+.b-card.sel { border-color: var(--f-dark); background: #f0fdf4; transform: scale(1.05); }
 
-.b-card {
-  flex: 1; min-width: 0; height: 115px; background: #f8fafc;
-  border: 3px solid #e2e8f0; border-radius: 12px;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  padding: 8px 4px; cursor: pointer; transition: 0.2s;
-}
-.b-card.sel { border-color: #22c55e; background: #f0fdf4; transform: scale(1.05); }
-
-.hidden { display: none !important; opacity: 0; pointer-events: none;}
+.hidden { display: none !important; }
 </style>
 </head>
 <body>
@@ -125,37 +104,31 @@ canvas { display: block; position: absolute; top: 0; left: 0; z-index: 1; }
         <div class="panel"><span class="hlbl">Strokes</span><span class="hval" id="shot-ui">0</span></div>
     </div>
     <div class="panel">
-        <span class="hlbl" style="align-self: flex-start;">Swings Left</span>
+        <span class="hlbl">Swings</span>
         <div id="pip-bar"></div>
     </div>
   </div>
-  <div class="panel" style="align-self: center; padding: 6px 20px; align-items: center;">
-    <span class="hlbl">Bonus Mission</span>
-    <span id="mission-ui" class="mission-text">Clear the Hole</span>
+  <div class="panel" style="align-self: center; align-items: center;">
+    <span class="hlbl">Mission</span>
+    <span id="mission-ui" class="mission-text">Sync the Core</span>
   </div>
 </div>
 
-<div id="toast">MISSION PENALTY!</div>
+<div id="wind"><span id="w-arr">→</span><span id="w-lbl" style="font-weight: 800; font-size: 12px;">WIND 0%</span></div>
 
 <div id="hand-layer">
   <div id="hand"></div>
 </div>
 
-<!-- Modal Overlay -->
 <div id="ov">
   <div id="pan">
     <h2 id="ptitle">LET'S GOLF!</h2>
-    <p id="p-body" style="color: #64748b; font-size: 14px; line-height: 1.4; margin:0;">Drag anywhere to aim. Build your deck and don't run out of swings!</p>
-    
+    <p id="p-body" style="color: #64748b; font-size: 14px; line-height: 1.4; margin:0;">Complete missions and sink the ball. Watch your power lines carefully!</p>
     <div id="draft-section" class="hidden">
-      <div class="hlbl" style="margin-bottom: 5px; font-size: 11px;">Draft a Power-Up</div>
+      <div class="hlbl" style="margin-bottom: 5px;">Pick a Tech Module</div>
       <div id="bonus-row"></div>
     </div>
-
-    <!-- UI Buttons trigger robust global functions -->
-    <button class="btn" id="btn-start" onclick="startGame()">TEE OFF</button>
-    <button class="btn hidden" id="btn-next" onclick="advanceHole()">NEXT HOLE</button>
-    <button class="btn danger hidden" id="btn-restart" onclick="restartRun()">NEW RUN</button>
+    <button class="btn" id="p-btn" onclick="window.handlePanelClick()">TEE OFF</button>
   </div>
 </div>
 
@@ -169,29 +142,25 @@ const STARTING_CARDS = [
 ];
 
 const LOOT_POOL = [
-  { id: 'magnet', name: 'Homing', ico: '🧲', pow: 1.1, cost: 1, effect: 'magnet', desc: 'Curves to Hole', color: '#a855f7' },
-  { id: 'bouncy', name: 'Bouncy', ico: '🏀', pow: 1.3, cost: 1, effect: 'bouncy', desc: 'Wall Bounce', color: '#f59e0b' },
-  { id: 'jump', name: 'Jetpack', ico: '🪂', pow: 1.6, cost: 2, effect: 'jump', desc: 'Fly over Sand', color: '#06b6d4' },
-  { id: 'sticky', name: 'Sticky', ico: '🟢', pow: 1.4, cost: 1, effect: 'sticky', desc: 'Impact Stop', color: '#10b981' }
+  { id: 'magnet', name: 'Homing', ico: '🧲', pow: 1.1, cost: 1, effect: 'magnet', desc: 'Pull near hole', color: '#a855f7' },
+  { id: 'bouncy', name: 'Bouncy', ico: '🏀', pow: 1.3, cost: 1, effect: 'bouncy', desc: 'Maintain speed', color: '#f59e0b' },
+  { id: 'jump', name: 'Jetpack', ico: '🪂', pow: 1.6, cost: 2, effect: 'jump', desc: 'Fly over sand', color: '#06b6d4' }
 ];
 
 const canvas = document.getElementById('gc');
 const ctx = canvas.getContext('2d');
 
-let W, H;
-let ACTIVE_DECK = [];
-let level = 1, shots = 0, stamina = 12, time = 0, bounces = 0;
+let W, H, ACTIVE_DECK = [], level = 1, shots = 0, stamina = 12, time = 0, bounces = 0;
 let ball = { x: 0, y: 0, vx: 0, vy: 0, r: 8, h: 0, sh: 0, effect: null };
 let hole = { x: 0, y: 0, r: 15 };
 let cam = { x: 0, y: 0, tx: 0, ty: 0 };
 let segments = [], hazards = [], hand = [], draftPool = [], draftIdx = -1, selectedIndex = -1;
-let isDrag = false, isPan = false, wasMoving = false, isHoleComplete = false;
+let isDrag = false, isPan = false, isGameOver = false, wasMoving = false;
 let dStart = { x: 0, y: 0 }, dCur = { x: 0, y: 0 };
-let grassTufts = [];
+let grassTufts = [], wind = { ang: 0, str: 0 };
 let mission = { type: 'clear', val: 0, desc: 'Clear the Hole', failed: false };
-let teePos = { x: 0, y: 0 };
 
-/** GLOBAL UI FUNCTIONS **/
+/** UI HANDLERS (Hardcoded for button reliability) **/
 window.selectCard = (i) => {
     selectedIndex = (selectedIndex === i) ? -1 : i;
     renderHand();
@@ -199,54 +168,28 @@ window.selectCard = (i) => {
 
 window.pickDraft = (i) => {
     draftIdx = i;
-    document.querySelectorAll('.b-card').forEach((c, idx) => c.classList.toggle('sel', idx === i));
+    document.querySelectorAll('.b-card').forEach((el, idx) => el.style.borderColor = (idx === i) ? '#10b981' : '#e2e8f0');
 };
 
-window.startGame = () => {
-    document.getElementById('ov').classList.add('hidden');
-};
-
-window.advanceHole = () => {
-    if (draftIdx !== -1) {
+window.handlePanelClick = () => {
+    if (isGameOver) {
+        restartRun();
+        return;
+    }
+    const dSec = document.getElementById('draft-section');
+    if (!dSec.classList.contains('hidden') && draftIdx !== -1) {
         ACTIVE_DECK.push(draftPool[draftIdx]);
         draftIdx = -1;
     }
     document.getElementById('ov').classList.add('hidden');
     document.getElementById('draft-section').classList.add('hidden');
-    level++; shots = 0; bounces = 0;
-    generateCourse(); dealHand();
+    if (shots > 0 || bounces > 0) { // If coming from a win
+        level++; shots = 0; bounces = 0;
+        generateCourse(); dealHand();
+    }
 };
 
-window.restartRun = () => {
-    level = 1; shots = 0; stamina = 12; bounces = 0;
-    ACTIVE_DECK = [...STARTING_CARDS];
-    document.getElementById('ov').classList.add('hidden');
-    document.getElementById('draft-section').classList.add('hidden');
-    generateCourse(); dealHand();
-};
-
-function showToast(msg) {
-    const t = document.getElementById('toast');
-    t.innerText = msg;
-    t.style.opacity = 1;
-    setTimeout(() => { t.style.opacity = 0; }, 2500);
-}
-
-/** CORE ENGINE & SETUP **/
-function init() {
-    resize();
-    genGrass();
-    ACTIVE_DECK = [...STARTING_CARDS];
-    generateCourse();
-    dealHand();
-    
-    // Hide specialized buttons on first load
-    document.getElementById('btn-next').classList.add('hidden');
-    document.getElementById('btn-restart').classList.add('hidden');
-    
-    requestAnimationFrame(loop);
-}
-
+/** CORE ENGINE **/
 function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
 
 function genGrass() {
@@ -260,329 +203,195 @@ function genGrass() {
 function generateCourse() {
     segments = []; hazards = []; const sz = 300; let cx = 0, cy = 0;
     segments.push({ x: cx, y: cy, w: sz, h: sz });
-
-    let retries = 0;
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 5; i++) {
+        let dir = Math.floor(Math.random() * 4);
         let nx = cx, ny = cy;
-        const dir = Math.floor(Math.random() * 4);
         if (dir === 0) ny -= sz; else if (dir === 1) nx += sz;
         else if (dir === 2) ny += sz; else if (dir === 3) nx -= sz;
-
-        // Prevent overlapping segments (Fixes Infinite Loop crash)
         if (!segments.some(s => s.x === nx && s.y === ny)) {
-            cx = nx; cy = ny;
-            segments.push({ x: cx, y: cy, w: sz, h: sz });
-            if (i > 1 && Math.random() > 0.6) hazards.push({ x: cx + 70, y: cy + 70, w: 100, h: 100 });
-            retries = 0;
-        } else {
-            i--;
-            retries++;
-            if (retries > 10) break; // Emergency escape
-        }
+            cx = nx; cy = ny; segments.push({ x: cx, y: cy, w: sz, h: sz });
+            if (Math.random() > 0.6) hazards.push({ x: cx + 70, y: cy + 70, w: 100, h: 100 });
+        } else i--;
     }
+    ball.x = segments[0].x + sz/2; ball.y = segments[0].y + sz/2; ball.vx = ball.vy = ball.h = 0; ball.effect = null;
+    const last = segments[segments.length - 1]; hole.x = last.x + sz/2; hole.y = last.y + sz/2;
 
-    teePos = { x: segments[0].x + sz / 2, y: segments[0].y + sz / 2 };
-    ball.x = teePos.x; ball.y = teePos.y;
-    ball.vx = ball.vy = ball.h = 0; ball.effect = null;
-    
-    const last = segments[segments.length - 1];
-    hole.x = last.x + sz / 2; hole.y = last.y + sz / 2;
+    if (level >= 3) {
+        wind.ang = Math.random() * Math.PI * 2; wind.str = 0.005 + (level * 0.001);
+        document.getElementById('wind').classList.add('show');
+        document.getElementById('w-arr').innerText = ['→','↘','↓','↙','←','↖','↑','↗'][Math.round(wind.ang / (Math.PI/4)) % 8];
+        document.getElementById('w-lbl').innerText = `WIND ${Math.round(wind.str * 1000)}%`;
+    } else { document.getElementById('wind').classList.remove('show'); }
 
-    // Set Mission
-    const ms = [
-        { t: 'shots', v: 4, d: 'Clear in 4 strokes or less' }, 
-        { t: 'bounces', v: 0, d: 'Zero wall bounces' }
-    ];
+    const ms = [{t:'shots', v:4, d:'Finish in 4 shots'}, {t:'bounces', v:0, d:'Zero wall bounces'}];
     const m = ms[Math.floor(Math.random() * ms.length)];
     mission = { type: m.t, val: m.v, desc: m.d, failed: false };
-    
-    const mUI = document.getElementById('mission-ui');
-    mUI.innerText = mission.desc;
-    mUI.classList.remove('mission-failed');
+    document.getElementById('mission-ui').innerText = mission.desc;
+    document.getElementById('mission-ui').classList.remove('mission-failed');
 
-    isHoleComplete = false;
-    wasMoving = false;
-
-    cam.tx = ball.x - W / 2; cam.ty = ball.y - H / 2;
-    cam.x = cam.tx; cam.y = cam.ty;
+    isGameOver = false; wasMoving = false;
+    cam.tx = ball.x - W/2; cam.ty = ball.y - H/2; cam.x = cam.tx; cam.y = cam.ty;
     refreshHUD();
 }
 
-/** PHYSICS & STATE UPDATES **/
 function update() {
     time += 0.02;
     const speed = Math.hypot(ball.vx, ball.vy);
-    const moving = speed > 0.1;
-
-    if (moving) {
+    if (speed > 0.1) {
         wasMoving = true;
-        
         ball.h = Math.max(0, ball.h + ball.sh); ball.sh -= 0.12;
         if (ball.h <= 0) { ball.h = 0; ball.sh = 0; }
-
-        if (ball.effect === 'magnet') {
-            const dx = hole.x - ball.x, dy = hole.y - ball.y;
-            const d = Math.max(1, Math.hypot(dx, dy));
-            if (d < 180) { ball.vx += dx / d * 0.25; ball.vy += dy / d * 0.25; }
+        if (speed > 0.4) { ball.vx += Math.cos(wind.ang)*wind.str; ball.vy += Math.sin(wind.ang)*wind.str; }
+        if (ball.effect === 'magnet' && Math.hypot(hole.x-ball.x, hole.y-ball.y) < 180) {
+            const dx = hole.x - ball.x, dy = hole.y - ball.y, d = Math.max(1, Math.hypot(dx, dy));
+            ball.vx += dx/d*0.25; ball.vy += dy/d*0.25;
         }
-
         ball.x += ball.vx; ball.y += ball.vy;
-
-        let f = 0.965;
-        const inSand = hazards.some(h => ball.x > h.x && ball.x < h.x + h.w && ball.y > h.y && ball.y < h.y + h.h);
-        if (inSand && ball.h < 5) f = 0.85; 
-        
+        let f = 0.962;
+        if (hazards.some(h => ball.x > h.x && ball.x < h.x + h.w && ball.y > h.y && ball.y < h.y + h.h) && ball.h < 5) f = 0.85;
         ball.vx *= f; ball.vy *= f;
-
-        if (ball.effect === 'sticky' && speed < 1.4) { ball.vx = 0; ball.vy = 0; }
-
         checkCollisions();
-        
         if (Math.hypot(ball.x - hole.x, ball.y - hole.y) < hole.r && ball.h < 10) triggerWin();
 
-        // Lazy camera
         const relX = ball.x - cam.x, relY = ball.y - cam.y, px = W * 0.3, py = H * 0.3;
         if (relX < px) cam.tx = ball.x - px; else if (relX > W - px) cam.tx = ball.x - (W - px);
         if (relY < py) cam.ty = ball.y - py; else if (relY > H - py) cam.ty = ball.y - (H - py);
-
     } else {
-        ball.vx = ball.vy = 0; ball.h = 0;
-        if (wasMoving) {
-            wasMoving = false;
-            onBallStopped();
-        }
+        ball.vx = 0; ball.vy = 0;
+        if (wasMoving) { wasMoving = false; if (stamina <= 0) triggerGameOver(); }
     }
-
-    cam.x += (cam.tx - cam.x) * 0.11;
-    cam.y += (cam.ty - cam.y) * 0.11;
+    cam.x += (cam.tx - cam.x) * 0.11; cam.y += (cam.ty - cam.y) * 0.11;
 }
 
+/** AXIS-SPECIFIC VECTOR REFLECTION **/
 function checkCollisions() {
     const s = segments.find(s => ball.x > s.x && ball.x < s.x + s.w && ball.y > s.y && ball.y < s.y + s.h);
     if (!s && ball.h < 10) {
-        let rest = (ball.effect === 'bouncy') ? -1.0 : -0.7;
-        ball.vx *= rest; ball.vy *= rest;
-        ball.x += ball.vx * 2; ball.y += ball.vy * 2;
-        bounces++;
-
-        // SEVERE MISSION PENALTY
-        if (mission.type === 'bounces' && !mission.failed) {
-            mission.failed = true;
-            document.getElementById('mission-ui').classList.add('mission-failed');
-            
-            // Teleport to start & sap stamina
-            ball.x = teePos.x; ball.y = teePos.y;
-            ball.vx = ball.vy = 0;
-            stamina = Math.max(0, stamina - 1);
-            showToast("MISSION FAILED: TEE PENALTY (-1 SWING)");
-            refreshHUD();
-            
-            cam.tx = ball.x - W / 2; cam.ty = ball.y - H / 2;
+        const sz = 300; let best = Infinity, nearest = null;
+        segments.forEach(seg => {
+            const dx = Math.max(seg.x - ball.x, 0, ball.x - (seg.x + sz)), dy = Math.max(seg.y - ball.y, 0, ball.y - (seg.y + sz));
+            const d = Math.hypot(dx, dy); if (d < best) { best = d; nearest = seg; }
+        });
+        if (nearest) {
+            let rest = (ball.effect === 'bouncy') ? -1.05 : -0.7;
+            if (ball.x < nearest.x || ball.x > nearest.x + sz) { ball.vx *= rest; ball.x += ball.vx * 2; } 
+            if (ball.y < nearest.y || ball.y > nearest.y + sz) { ball.vy *= rest; ball.y += ball.vy * 2; }
+            bounces++; if (mission.type === 'bounces') { mission.failed = true; document.getElementById('mission-ui').classList.add('mission-failed'); }
         }
     }
 }
 
-function onBallStopped() {
-    if (isHoleComplete) return; 
-    
-    // Evaluate Shots Mission
-    if (mission.type === 'shots' && shots > mission.val && !mission.failed) {
-        mission.failed = true;
-        document.getElementById('mission-ui').classList.add('mission-failed');
-        showToast("MISSION FAILED: TOO MANY SHOTS");
-    }
-
-    if (stamina <= 0) triggerGameOver();
-}
-
-/** DRAWING **/
 function draw() {
-    ctx.clearRect(0, 0, W, H);
-    ctx.fillStyle = '#0f172a'; ctx.fillRect(0, 0, W, H);
-
-    ctx.save();
-    ctx.translate(-cam.x, -cam.y);
-
-    ctx.fillStyle = '#1e293b';
-    grassTufts.forEach(t => ctx.fillRect(t.x + Math.sin(time + t.off) * 2, t.y, 3, 3));
-
-    const sw = 50;
+    ctx.clearRect(0, 0, W, H); ctx.fillStyle = '#0f172a'; ctx.fillRect(0, 0, W, H);
+    ctx.save(); ctx.translate(-cam.x, -cam.y);
+    ctx.fillStyle = '#1e293b'; grassTufts.forEach(t => ctx.fillRect(t.x + Math.sin(time + t.off)*2, t.y, 3, 3));
     segments.forEach(s => {
-        for (let y = s.y; y < s.y + s.h; y += sw) {
-            ctx.fillStyle = (Math.floor(y / sw) % 2 === 0) ? '#10b981' : '#059669';
-            ctx.fillRect(s.x - 1, y - 1, s.w + 2, sw + 2);
+        for (let y = s.y; y < s.y + s.h; y += 50) {
+            ctx.fillStyle = (Math.floor(y / 50) % 2 === 0) ? '#10b981' : '#059669';
+            ctx.fillRect(s.x-1, y-1, s.w+2, 52);
         }
     });
-
     ctx.fillStyle = '#fde047'; hazards.forEach(h => ctx.fillRect(h.x, h.y, h.w, h.h));
-
     ctx.strokeStyle = '#fff'; ctx.lineWidth = 6; ctx.lineJoin = 'round';
     segments.forEach(s => {
-        const sz = 300;
         const exists = (dx, dy) => segments.some(n => n.x === s.x + dx && n.y === s.y + dy);
-        if (!exists(0, -sz)) { ctx.beginPath(); ctx.moveTo(s.x - 3, s.y); ctx.lineTo(s.x + sz + 3, s.y); ctx.stroke(); }
-        if (!exists(0, sz)) { ctx.beginPath(); ctx.moveTo(s.x - 3, s.y + sz); ctx.lineTo(s.x + sz + 3, s.y + sz); ctx.stroke(); }
-        if (!exists(-sz, 0)) { ctx.beginPath(); ctx.moveTo(s.x, s.y - 3); ctx.lineTo(s.x, s.y + sz + 3); ctx.stroke(); }
-        if (!exists(sz, 0)) { ctx.beginPath(); ctx.moveTo(s.x + sz, s.y - 3); ctx.lineTo(s.x + sz, s.y + sz + 3); ctx.stroke(); }
+        if (!exists(0, -300)) { ctx.beginPath(); ctx.moveTo(s.x-3, s.y); ctx.lineTo(s.x+303, s.y); ctx.stroke(); }
+        if (!exists(0, 300)) { ctx.beginPath(); ctx.moveTo(s.x-3, s.y+300); ctx.lineTo(s.x+303, s.y+300); ctx.stroke(); }
+        if (!exists(-300, 0)) { ctx.beginPath(); ctx.moveTo(s.x, s.y-3); ctx.lineTo(s.x, s.y+303); ctx.stroke(); }
+        if (!exists(300, 0)) { ctx.beginPath(); ctx.moveTo(s.x+300, s.y-3); ctx.lineTo(s.x+300, s.y+303); ctx.stroke(); }
     });
-
     ctx.fillStyle = '#0f172a'; ctx.beginPath(); ctx.arc(hole.x, hole.y, hole.r, 0, 6.28); ctx.fill();
     ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.beginPath(); ctx.arc(ball.x + (ball.h/2), ball.y + (ball.h/2), ball.r, 0, 6.28); ctx.fill();
     ctx.fillStyle = 'white'; ctx.beginPath(); ctx.arc(ball.x, ball.y - ball.h, ball.r + (ball.h / 4), 0, 6.28); ctx.fill();
-
     if (isDrag && selectedIndex !== -1 && !isPan) {
-        const card = hand[selectedIndex];
-        const dx = dStart.x - dCur.x, dy = dStart.y - dCur.y;
-        const dragDist = Math.min(Math.hypot(dx, dy), 120);
-        const drawDist = dragDist * card.pow * 1.5; 
-        const ang = Math.atan2(dy, dx);
-        
-        ctx.strokeStyle = card.color || '#3b82f6'; 
-        ctx.lineWidth = 4; ctx.setLineDash([10, 5]);
-        ctx.beginPath(); ctx.moveTo(ball.x, ball.y); ctx.lineTo(ball.x + Math.cos(ang) * drawDist, ball.y + Math.sin(ang) * drawDist); ctx.stroke(); 
-        ctx.beginPath(); ctx.arc(ball.x + Math.cos(ang) * drawDist, ball.y + Math.sin(ang) * drawDist, 8, 0, 6.28); ctx.stroke();
-        ctx.setLineDash([]);
+        const c = hand[selectedIndex]; const dx = dStart.x - dCur.x, dy = dStart.y - dCur.y;
+        const dist = Math.min(Math.hypot(dx, dy), 120), drawDist = dist * c.pow * 1.5, ang = Math.atan2(dy, dx);
+        ctx.strokeStyle = c.color; ctx.lineWidth = 4; ctx.setLineDash([10, 5]);
+        ctx.beginPath(); ctx.moveTo(ball.x, ball.y); ctx.lineTo(ball.x + Math.cos(ang)*drawDist, ball.y + Math.sin(ang)*drawDist); ctx.stroke();
+        ctx.beginPath(); ctx.arc(ball.x + Math.cos(ang)*drawDist, ball.y + Math.sin(ang)*drawDist, 8, 0, 6.28); ctx.stroke();
     }
     ctx.restore();
-    drawOffscreenIndicator();
+    drawArrow();
 }
 
-function drawOffscreenIndicator() {
+function drawArrow() {
     const hx = hole.x - cam.x, hy = hole.y - cam.y;
     if (hx < 0 || hx > W || hy < 0 || hy > H) {
-        const cx = W / 2, cy = H / 2, angle = Math.atan2(hy - cy, hx - cx);
-        const pad = 40, b = { l: pad, r: W - pad, t: pad + 100, b: H - pad - 180 }; 
-        const tT = (b.t - cy) / Math.sin(angle), tB = (b.b - cy) / Math.sin(angle);
-        const tL = (b.l - cx) / Math.cos(angle), tR = (b.r - cx) / Math.cos(angle);
-        
-        let t = Infinity;
-        if (tT > 0 && tT < t) t = tT; if (tB > 0 && tB < t) t = tB;
-        if (tL > 0 && tL < t) t = tL; if (tR > 0 && tR < t) t = tR;
-        
-        const ix = cx + Math.cos(angle) * t, iy = cy + Math.sin(angle) * t;
-
-        ctx.save(); ctx.translate(ix, iy); ctx.rotate(angle);
-        ctx.shadowBlur = 10; ctx.shadowColor = 'black'; ctx.fillStyle = '#ef4444';
-        ctx.beginPath(); ctx.moveTo(15, 0); ctx.lineTo(-10, 10); ctx.lineTo(-5, 0); ctx.lineTo(-10, -10); ctx.closePath(); ctx.fill();
-        ctx.restore();
+        const cx = W/2, cy = H/2, ang = Math.atan2(hy - cy, hx - cx);
+        const pad = 40, b = { l: pad, r: W-pad, t: pad+100, b: H-pad-180 };
+        const tT = (b.t-cy)/Math.sin(ang), tB = (b.b-cy)/Math.sin(ang), tL = (b.l-cx)/Math.cos(ang), tR = (b.r-cx)/Math.cos(ang);
+        let t = Infinity; if (tT>0 && tT<t) t=tT; if (tB>0 && tB<t) t=tB; if (tL>0 && tL<t) t=tL; if (tR>0 && tR<t) t=tR;
+        ctx.save(); ctx.translate(cx + Math.cos(ang)*t, cy + Math.sin(ang)*t); ctx.rotate(ang);
+        ctx.fillStyle = '#ef4444'; ctx.beginPath(); ctx.moveTo(15,0); ctx.lineTo(-10,10); ctx.lineTo(-5,0); ctx.lineTo(-10,-10); ctx.fill(); ctx.restore();
     }
 }
 
-/** INPUTS (ATTACHED TO CANVAS ONLY) **/
+/** INPUT CONTROLLER (Isolated from UI) **/
 canvas.addEventListener('pointerdown', e => {
     isDrag = true; dStart = { x: e.clientX, y: e.clientY }; dCur = { x: e.clientX, y: e.clientY };
     isPan = (selectedIndex === -1);
 });
-
 canvas.addEventListener('pointermove', e => {
     if (!isDrag) return; dCur = { x: e.clientX, y: e.clientY };
     if (isPan) { cam.tx -= (e.clientX - dStart.x); cam.ty -= (e.clientY - dStart.y); dStart = { x: e.clientX, y: e.clientY }; }
 });
-
-canvas.addEventListener('pointerup', () => {
-    if (!isDrag) return; 
-
-    if (selectedIndex !== -1 && !isPan) {
-        const dx = dStart.x - dCur.x, dy = dStart.y - dCur.y;
-        if (Math.hypot(dx, dy) > 15) {
+canvas.addEventListener('pointerup', e => {
+    const dist = Math.hypot(dStart.x - e.clientX, dStart.y - e.clientY);
+    if (isDrag && dist > 10) {
+        if (selectedIndex !== -1 && !isPan) {
             const card = hand[selectedIndex];
             if (stamina >= card.cost) {
-                const ang = Math.atan2(dy, dx);
-                const pow = Math.min(Math.hypot(dx, dy) / 7, 25) * card.pow;
-                ball.vx = Math.cos(ang) * pow; ball.vy = Math.sin(ang) * pow;
-                ball.effect = card.effect; stamina -= card.cost; shots++;
-
-                if (card.effect === 'jump') ball.sh = 2.5; 
-
-                hand.splice(selectedIndex, 1); selectedIndex = -1;
-                if (hand.length === 0) setTimeout(dealHand, 600);
+                ball.vx = Math.cos(Math.atan2(dStart.y-e.clientY, dStart.x-e.clientX))*Math.min(dist/7, 25)*card.pow;
+                ball.vy = Math.sin(Math.atan2(dStart.y-e.clientY, dStart.x-e.clientX))*Math.min(dist/7, 25)*card.pow;
+                ball.effect = card.effect; stamina -= card.cost; shots++; if (card.effect === 'jump') ball.sh = 3.5;
+                hand.splice(selectedIndex, 1); selectedIndex = -1; if (hand.length === 0) setTimeout(dealHand, 600);
             }
         }
     }
-    isDrag = isPan = false; refreshHUD(); renderHand(); 
+    isDrag = isPan = false; refreshHUD(); renderHand();
 });
 
-/** GAME FLOW & UI **/
 function refreshHUD() {
-    const elL = document.getElementById('lvl-ui'), elS = document.getElementById('shot-ui'), bar = document.getElementById('pip-bar');
-    if (elL) elL.innerText = level; if (elS) elS.innerText = shots;
-    if (bar) {
-        bar.innerHTML = '';
-        for (let i = 0; i < 16; i++) {
-            const p = document.createElement('div');
-            p.className = `pip ${i < stamina ? 'on' : ''} ${stamina <= 3 && i < stamina ? 'warn' : ''}`;
-            bar.appendChild(p);
-        }
-    }
+    document.getElementById('lvl-ui').innerText = level; document.getElementById('shot-ui').innerText = shots;
+    const bar = document.getElementById('pip-bar'); bar.innerHTML = '';
+    for(let i=0; i<16; i++) { const p = document.createElement('div'); p.className = `pip ${i < stamina ? 'on' : ''}`; bar.appendChild(p); }
 }
 
-function dealHand() {
-    hand = Array.from({ length: 3 }, () => ({ ...ACTIVE_DECK[Math.floor(Math.random() * ACTIVE_DECK.length)] }));
-    renderHand();
-}
+function dealHand() { hand = Array.from({ length: 3 }, () => ({ ...ACTIVE_DECK[Math.floor(Math.random() * ACTIVE_DECK.length)] })); renderHand(); }
 
 function renderHand() {
-    const el = document.getElementById('hand');
-    if (!el) return;
-    el.innerHTML = hand.map((c, i) => `
-        <div class="card ${selectedIndex === i ? 'sel' : ''}" onclick="window.selectCard(${i})">
-            <div class="ccst">${c.cost}</div>
-            <div class="cico">${c.ico}</div>
-            <div class="cnam">${c.name.replace('\n', '<br>')}</div>
+    const container = document.getElementById('hand');
+    container.innerHTML = hand.map((c, i) => `
+        <div class="card ${selectedIndex === i ? 'sel' : ''}" onclick="window.selectCard(${i}); event.stopPropagation();">
+            <div class="ccst">${c.cost}</div><div class="cico">${c.ico}</div><div class="cnam">${c.name}</div>
         </div>
     `).join('');
 }
 
 function triggerWin() {
-    ball.vx = ball.vy = 0;
-    isHoleComplete = true;
-    
-    let reward = 2;
-    if (!mission.failed) reward += 2;
-    stamina = Math.min(16, stamina + reward);
-
-    document.getElementById('ov').classList.remove('hidden');
-    document.getElementById('ptitle').innerText = "HOLE COMPLETE";
-    document.getElementById('ptitle').style.color = "var(--text-dark)";
-    
-    let msg = `Swings restored (+${reward}).`;
-    if (!mission.failed) msg = `Mission Accomplished! Swings restored (+${reward}).`;
-    document.getElementById('p-body').innerText = `${msg} Pick a new power-up.`;
-
+    ball.vx = ball.vy = 0; let reward = 2 + (!mission.failed ? 2 : 0); stamina = Math.min(16, stamina + reward);
+    document.getElementById('ov').classList.remove('hidden'); document.getElementById('ptitle').innerText = "HOLE COMPLETE";
+    document.getElementById('p-body').innerText = `Rewards: +${reward} swings. Pick a Tech Module Upgrade.`;
     document.getElementById('draft-section').classList.remove('hidden');
-    
-    // UI Button state machine update
-    document.getElementById('btn-start').classList.add('hidden');
-    document.getElementById('btn-restart').classList.add('hidden');
-    document.getElementById('btn-next').classList.remove('hidden');
-
     draftPool = Array.from({ length: 3 }, () => ({ ...LOOT_POOL[Math.floor(Math.random() * LOOT_POOL.length)] }));
-    
-    const row = document.getElementById('bonus-row');
-    row.innerHTML = draftPool.map((c, i) => `
-        <div class="b-card ${draftIdx === i ? 'sel' : ''}" onclick="window.pickDraft(${i})">
-            <div style="font-size: 24px;">${c.ico}</div>
-            <div style="font-weight: 800; font-family: Poppins; font-size: 11px; margin-top:5px; color:#0f172a; text-align: center;">${c.name.replace('\n', '<br>')}</div>
-            <div style="color:#64748b; font-size:9px; text-align: center; margin-top: 3px;">${c.desc}</div>
-        </div>
+    document.getElementById('bonus-row').innerHTML = draftPool.map((c, i) => `
+        <div class="b-card" onclick="window.pickDraft(${i}); event.stopPropagation();"><div style="font-size:24px">${c.ico}</div><div style="font-weight:800; font-size:10px; margin-top:5px; color:#1e293b">${c.name}</div></div>
     `).join('');
 }
 
 function triggerGameOver() {
-    document.getElementById('ov').classList.remove('hidden');
-    document.getElementById('draft-section').classList.add('hidden');
-    
-    document.getElementById('ptitle').innerText = "OUT OF SWINGS";
-    document.getElementById('ptitle').style.color = "#ef4444";
-    document.getElementById('p-body').innerText = `You ran out of energy on Hole ${level}.`;
-    
-    document.getElementById('btn-start').classList.add('hidden');
-    document.getElementById('btn-next').classList.add('hidden');
-    document.getElementById('btn-restart').classList.remove('hidden');
+    isGameOver = true; document.getElementById('ov').classList.remove('hidden'); document.getElementById('draft-section').classList.add('hidden');
+    document.getElementById('ptitle').innerText = "GAME OVER"; document.getElementById('p-body').innerText = `Out of swings on Hole ${level}.`;
+    document.getElementById('p-btn').innerText = "NEW RUN";
+}
+
+function restartRun() {
+    level = 1; shots = 0; stamina = 12; bounces = 0; ACTIVE_DECK = [...STARTING_CARDS];
+    document.getElementById('ov').classList.add('hidden'); generateCourse(); dealHand();
 }
 
 function loop() { update(); draw(); requestAnimationFrame(loop); }
-window.onload = () => { init(); };
+window.onload = () => { resize(); genGrass(); ACTIVE_DECK = [...STARTING_CARDS]; generateCourse(); dealHand(); loop(); };
 window.onresize = resize;
 </script>
 </body>
